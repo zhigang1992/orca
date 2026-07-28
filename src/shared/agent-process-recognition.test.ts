@@ -257,6 +257,20 @@ describe('agent process recognition', () => {
   })
 
   it('recognizes versioned Grok process names observed from the installed CLI', () => {
+    expect(recognizeAgentProcess('kimi')).toEqual({
+      agent: 'kimi',
+      processName: 'kimi'
+    })
+    // Why: PROCESS_NAME = "kimi-code" becomes the ps/comm label after title set.
+    expect(recognizeAgentProcess('kimi-code')).toEqual({
+      agent: 'kimi',
+      processName: 'kimi-code'
+    })
+    expect(recognizeAgentProcess('/Volumes/Users/dev/.kimi-code/bin/kimi')).toEqual({
+      agent: 'kimi',
+      processName: 'kimi'
+    })
+
     expect(recognizeAgentProcess('grok-0.2.51')).toEqual({
       agent: 'grok',
       processName: 'grok-0.2.51'

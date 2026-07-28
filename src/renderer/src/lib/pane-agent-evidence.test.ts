@@ -68,6 +68,12 @@ describe('title agent identity facets', () => {
     expect(resolveCommittedTitleAgentType('✳ Claude Code working')).toBe('claude')
   })
 
+  it('commits Kimi identity from the product OSC title', () => {
+    expect(resolveTitleActivityLabel('Kimi Code')).toBe('Kimi Code')
+    expect(resolveCommittedTitleAgentType('Kimi Code')).toBe('kimi')
+    expect(resolveCommittedTitleAgentType('kimi-native-chatui')).toBe(null)
+  })
+
   it('returns neither facet for a plain shell title', () => {
     expect(resolveTitleActivityLabel('zsh')).toBe(null)
     expect(resolveCommittedTitleAgentType('zsh')).toBe(null)

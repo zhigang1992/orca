@@ -229,6 +229,9 @@ export const TUI_AGENT_CONFIG: Record<TuiAgent, TuiAgentConfig> = {
   },
   kimi: {
     detectCmd: 'kimi',
+    // Why: Kimi sets process.title to PROCESS_NAME "kimi-code"; macOS/ps can
+    // surface that instead of the `kimi` binary basename for foreground ownership.
+    detectCmdAliases: ['kimi-code'],
     launchCmd: 'kimi',
     expectedProcess: 'kimi',
     promptInjectionMode: 'stdin-after-start'

@@ -101,6 +101,26 @@ describe('MiMo title detection', () => {
   )
 })
 
+describe('Kimi title detection', () => {
+  it.each([
+    ['Kimi Code', 'idle'],
+    ['kimi ready', 'idle'],
+    ['kimi working', 'working'],
+    ['\u280b Kimi Code', 'working']
+  ] as const)('classifies %s', (title, expectedStatus) => {
+    expect(getAgentLabel(title)).toBe('Kimi Code')
+    expect(detectAgentStatusFromTitle(title)).toBe(expectedStatus)
+  })
+
+  it.each(['~/kimi/working', 'kimi-native-chatui ready', 'kimi-code-fixtures ready'])(
+    'does not classify path or hyphen false positive %s',
+    (title) => {
+      expect(getAgentLabel(title)).toBeNull()
+      expect(detectAgentStatusFromTitle(title)).toBeNull()
+    }
+  )
+})
+
 describe('Pi-compatible title detection', () => {
   it.each([
     ['\u280b OMP', 'OMP', 'working'],

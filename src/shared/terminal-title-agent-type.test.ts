@@ -42,6 +42,7 @@ describe('resolveExplicitTerminalTitleAgentType', () => {
     expect(resolveExplicitTerminalTitleAgentType('⠋ Codex')).toBe('codex')
     expect(resolveExplicitTerminalTitleAgentType('✦ Gemini CLI')).toBe('gemini')
     expect(resolveExplicitTerminalTitleAgentType('MiMo Code')).toBe('mimo-code')
+    expect(resolveExplicitTerminalTitleAgentType('Kimi Code')).toBe('kimi')
     expect(resolveExplicitTerminalTitleAgentType('⠋ OpenClaude')).toBe('openclaude')
     expect(resolveExplicitTerminalTitleAgentType('OMP')).toBe('omp')
   })

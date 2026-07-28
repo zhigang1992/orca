@@ -99,6 +99,11 @@ export function getAgentLabel(title: string): string | null {
   if (titleHasAgentName(title, 'mimo')) {
     return 'MiMo Code'
   }
+  // Why: Kimi Code sets OSC title "Kimi Code" (PRODUCT_NAME). Token-match so
+  // path/worktree titles like "kimi-native-chatui" do not mint identity.
+  if (titleHasAgentName(title, 'kimi')) {
+    return 'Kimi Code'
+  }
   if (titleHasAgentName(title, 'aider')) {
     return 'Aider'
   }

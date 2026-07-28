@@ -136,6 +136,18 @@ describe('canToggleNativeChat', () => {
     ).toBe(true)
   })
 
+  it('accepts Kimi when resolved from the title (manually started / restored)', () => {
+    expect(
+      canToggleNativeChat({
+        experimentalNativeChatEnabled: true,
+        contentType: 'terminal',
+        launchAgent: null,
+        detectedAgent: null,
+        resolvedAgent: 'kimi'
+      })
+    ).toBe(true)
+  })
+
   it('rejects a stale supported title when live detection found an unsupported agent', () => {
     expect(
       canToggleNativeChat({

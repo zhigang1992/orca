@@ -34,7 +34,7 @@ export type NativeChatAvailabilityInput = {
  *  shells, non-terminal surfaces (editor, browser, …), and unsupported agents
  *  (Gemini, …) never qualify. Live identity is authoritative when present;
  *  launch metadata is next, and title resolution only fills the pre-hook gap for
- *  manually-started Claude/Codex/Grok sessions. */
+ *  manually-started Claude/Codex/Grok/Kimi sessions. */
 export function canToggleNativeChat(input: NativeChatAvailabilityInput): boolean {
   if (input.experimentalNativeChatEnabled !== true) {
     return false
