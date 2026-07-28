@@ -35,6 +35,10 @@ export function getNativeChatExperimentalSearchEntry(): SettingsSearchEntry {
         'grok'
       ),
       ...translateSearchKeyword(
+        'auto.components.settings.experimental.search.nativeChat.kimi',
+        'kimi'
+      ),
+      ...translateSearchKeyword(
         'auto.components.settings.experimental.search.nativeChat.terminal',
         'terminal'
       ),

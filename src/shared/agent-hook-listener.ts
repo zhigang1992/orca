@@ -2811,6 +2811,7 @@ function normalizeKimiEvent(
     agentType: 'kimi',
     toolName: snapshot.toolName,
     toolInput: snapshot.toolInput,
+    interactivePrompt: snapshot.interactivePrompt,
     lastAssistantMessage: snapshot.lastAssistantMessage,
     interrupted
   })

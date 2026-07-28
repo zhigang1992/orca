@@ -102,6 +102,17 @@ describe('canToggleNativeChat', () => {
     ).toBe(true)
   })
 
+  it('accepts local Kimi once native chat can parse its transcript', () => {
+    expect(
+      canToggleNativeChat({
+        experimentalNativeChatEnabled: true,
+        contentType: 'terminal',
+        launchAgent: 'kimi',
+        nativeChatTranscriptIsLocalReadable: isNativeChatTranscriptLocalReadable(null)
+      })
+    ).toBe(true)
+  })
+
   it('rejects an unsupported agent detected live (Gemini)', () => {
     expect(
       canToggleNativeChat({

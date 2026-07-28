@@ -196,6 +196,67 @@ describe('resolveSessionFilePath', () => {
     expect(await resolveSessionFilePath('gemini', 'whatever')).toBeNull()
   })
 
+  it('resolves a Kimi wire.jsonl via state.json under wd_*/session_<id>', async () => {
+    const root = await makeRoot('orca-native-chat-resolve-kimi-')
+    const kimiSessionsDir = join(root, 'kimi-sessions')
+    const sessionDir = join(kimiSessionsDir, 'wd_repo_ab12cd34ef56', 'session_abc-123')
+    const agentDir = join(sessionDir, 'agents', 'main')
+    await mkdir(agentDir, { recursive: true })
+    await writeFile(
+      join(sessionDir, 'state.json'),
+      JSON.stringify({ agents: { main: { type: 'main', parentAgentId: null } } })
+    )
+    const target = join(agentDir, 'wire.jsonl')
+    await writeFile(target, '{"type":"metadata"}\n')
+
+    const resolved = await resolveSessionFilePath('kimi', 'session_abc-123', { kimiSessionsDir })
+    expect(resolved).toBe(target)
+  })
+
+  it('resolves a Kimi session by bare uuid and a non-default primary agent id', async () => {
+    const root = await makeRoot('orca-native-chat-resolve-kimi-agent-')
+    const kimiSessionsDir = join(root, 'kimi-sessions')
+    const sessionDir = join(kimiSessionsDir, 'wd_repo_ab12cd34ef56', 'session_def-456')
+    const agentDir = join(sessionDir, 'agents', 'lead-1')
+    await mkdir(agentDir, { recursive: true })
+    await writeFile(
+      join(sessionDir, 'state.json'),
+      JSON.stringify({
+        agents: {
+          'sub-1': { type: 'subagent', parentAgentId: 'lead-1' },
+          'lead-1': { type: 'main', parentAgentId: null }
+        }
+      })
+    )
+    const target = join(agentDir, 'wire.jsonl')
+    await writeFile(target, '{"type":"metadata"}\n')
+
+    const resolved = await resolveSessionFilePath('kimi', 'def-456', { kimiSessionsDir })
+    expect(resolved).toBe(target)
+  })
+
+  it('returns null when the Kimi wire transcript does not exist yet', async () => {
+    const root = await makeRoot('orca-native-chat-resolve-kimi-missing-')
+    const kimiSessionsDir = join(root, 'kimi-sessions')
+    const sessionDir = join(kimiSessionsDir, 'wd_repo_ab12cd34ef56', 'session_ghi-789')
+    await mkdir(sessionDir, { recursive: true })
+    await writeFile(join(sessionDir, 'state.json'), '{}')
+
+    await expect(
+      resolveSessionFilePath('kimi', 'session_ghi-789', { kimiSessionsDir })
+    ).resolves.toBeNull()
+  })
+
+  it('rejects unsafe Kimi session ids before filesystem discovery', async () => {
+    const root = await makeRoot('orca-native-chat-resolve-kimi-invalid-')
+    const kimiSessionsDir = join(root, 'kimi-sessions')
+    await mkdir(kimiSessionsDir, { recursive: true })
+
+    await expect(
+      resolveSessionFilePath('kimi', '../escape', { kimiSessionsDir })
+    ).resolves.toBeNull()
+  })
+
   it('prefers the hook transcriptPath when it exists (Claude id != file name)', async () => {
     // Recent Claude Code names the file with a UUID that differs from the hook
     // session_id, so the id glob would miss it — but transcript_path is exact.

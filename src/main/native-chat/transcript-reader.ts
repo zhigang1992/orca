@@ -10,7 +10,8 @@ import { resolveSessionFilePath, type ResolveSessionFileOptions } from './sessio
 import {
   decodeClaudeTranscriptLine,
   decodeCodexTranscriptLine,
-  decodeGrokTranscriptLine
+  decodeGrokTranscriptLine,
+  decodeKimiTranscriptLine
 } from './transcript-line-decoders'
 import { decodeTranscriptStream } from './transcript-stream-lines'
 
@@ -29,7 +30,7 @@ export type ReadTranscriptOptions = ResolveSessionFileOptions & {
 }
 
 /**
- * Read the ENTIRE Claude/Codex JSONL transcript for an agent + session id into
+ * Read the ENTIRE agent JSONL transcript for an agent + session id into
  * the NativeChatMessage model. Unlike the AI-Vault preview scan, this applies
  * NO message cap. Unknown record types are skipped rather than throwing, so a
  * single malformed/unrecognized line cannot fail the whole read. The per-line
@@ -54,6 +55,9 @@ export async function readNativeChatTranscript(
     }
     if (transcriptAgent === 'grok') {
       return { messages: await readTranscript(filePath, decodeGrokTranscriptLine) }
+    }
+    if (transcriptAgent === 'kimi') {
+      return { messages: await readTranscript(filePath, decodeKimiTranscriptLine) }
     }
     return { error: `Unsupported agent for Chat UI transcript: ${agent}` }
   } catch (err) {

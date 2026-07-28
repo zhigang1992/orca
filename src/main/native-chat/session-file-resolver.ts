@@ -1,9 +1,15 @@
 import { existsSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { basename, extname, join } from 'node:path'
 import type { AgentType } from '../../shared/native-chat-types'
 import { resolveNativeChatTranscriptAgent } from '../../shared/native-chat-agent-support'
 import { walkSessionFiles } from '../ai-vault/session-scanner-discovery'
+import {
+  kimiPrimaryAgentWirePath,
+  resolveKimiSessionsDir
+} from '../ai-vault/session-scanner-kimi-paths'
+import { asRecord } from '../ai-vault/session-scanner-values'
 import { getOrcaManagedCodexHomePath } from '../codex/codex-home-paths'
 import {
   findGrokChatHistoryBySessionId,
@@ -45,6 +51,8 @@ export type ResolveSessionFileOptions = {
   codexSessionsDirs?: string[]
   /** Override the Grok sessions root (`~/.grok/sessions`). */
   grokSessionsDir?: string
+  /** Override the Kimi sessions root (`<KIMI_CODE_HOME>/sessions`). */
+  kimiSessionsDir?: string
   /** Authoritative transcript path reported by the agent hook
    *  (`providerSession.transcriptPath`). When set and the file exists, it is used
    *  directly — recent Claude Code names the transcript with a UUID that differs
@@ -94,6 +102,9 @@ export async function resolveSessionFilePath(
   if (transcriptAgent === 'grok') {
     return resolveGrokSessionFile(trimmedId, options.grokSessionsDir ?? grokSessionsDir())
   }
+  if (transcriptAgent === 'kimi') {
+    return resolveKimiSessionFile(trimmedId, options.kimiSessionsDir ?? resolveKimiSessionsDir())
+  }
   return null
 }
 
@@ -142,4 +153,38 @@ async function resolveGrokSessionFile(
   // lookup instead of blocking, then repeating, a recursive full-tree scan.
   const history = await findGrokChatHistoryBySessionId(sessionsDir, sessionId)
   return history
+}
+
+// Kimi session dirs are named `session_<uuid>` and the id keeps that prefix
+// (it's what `kimi --session <id>` expects); tolerate a bare uuid too.
+const KIMI_SESSION_ID_PATTERN = /^(session_)?[a-z0-9-]+$/i
+
+async function resolveKimiSessionFile(
+  sessionId: string,
+  sessionsDir: string
+): Promise<string | null> {
+  if (!KIMI_SESSION_ID_PATTERN.test(sessionId)) {
+    return null
+  }
+  const dirName = sessionId.startsWith('session_') ? sessionId : `session_${sessionId}`
+  // Layout: <sessionsDir>/wd_<name>_<hash>/session_<uuid>/state.json — prune the
+  // walk to that exact shape so agents/<id>/ and logs/ subtrees are never read.
+  const stateFiles = await walkSessionFiles(sessionsDir, 'kimi', [], {
+    extensions: new Set(['.json']),
+    filePredicate: (path) => basename(path) === 'state.json',
+    directoryPredicate: (name, depth) =>
+      depth === 0 ? name.startsWith('wd_') : depth === 1 ? name === dirName : false
+  })
+  const statePath = stateFiles[0]
+  if (!statePath) {
+    return null
+  }
+  let stateRecord: Record<string, unknown> | null = null
+  try {
+    stateRecord = asRecord(JSON.parse(await readFile(statePath, 'utf-8')) as unknown)
+  } catch {
+    // A malformed state.json still resolves a plausible path (defaults to agents/main).
+  }
+  const wirePath = kimiPrimaryAgentWirePath(statePath, stateRecord)
+  return existsSync(wirePath) ? wirePath : null
 }

@@ -1543,6 +1543,18 @@ describe('shared agent-hook-listener', () => {
       state: 'waiting',
       toolName: 'AskUserQuestion'
     })
+    // Why: native chat's question/approval cards read interactivePrompt; Kimi's
+    // normalizer must forward it like every other agent's (#9610).
+    expect(question?.payload.interactivePrompt).toBe(
+      JSON.stringify({
+        questions: [
+          {
+            question: 'Which region should I deploy to?',
+            options: [{ label: 'us-east', description: 'US East' }]
+          }
+        ]
+      })
+    )
     expect(answered?.payload).toMatchObject({
       agentType: 'kimi',
       state: 'working',
