@@ -78,6 +78,9 @@ export const terminalSettingsScreenStyles = StyleSheet.create({
     fontWeight: '500',
     color: colors.textPrimary
   },
+  toggleHiddenUntilLoaded: {
+    opacity: 0
+  },
   rowSublabel: {
     fontSize: typography.bodySize - 2,
     color: colors.textSecondary,

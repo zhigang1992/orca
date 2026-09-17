@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { View, Text, Pressable, Switch } from 'react-native'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { View, Text, Pressable } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import Animated, {
@@ -18,6 +18,8 @@ import { PickerModal, type PickerOption } from '../src/components/PickerModal'
 import { TerminalShortcutSettings } from '../src/components/TerminalShortcutSettings'
 import { setTerminalAutoRestoreFitMsForHost } from '../src/terminal/terminal-auto-restore-fit-state'
 import { terminalSettingsScreenStyles as styles } from '../src/terminal/terminal-settings-screen-styles'
+import { TerminalSettingsToggleRow } from '../src/terminal/TerminalSettingsToggleRow'
+import { useStoredToggleSetting } from '../src/settings/use-stored-toggle-setting'
 import {
   loadTerminalAutocompleteEnabled,
   loadTerminalDefaultInputMode,
@@ -158,45 +160,15 @@ export default function TerminalSettingsScreen() {
     void saveTerminalTextScale(opt.scale)
   }, [])
 
-  const [autocompleteEnabled, setAutocompleteEnabled] = useState(false)
-  // Why: a fast toggle before the initial load resolves must win — otherwise the
-  // delayed read would clobber the user's choice with the stored (stale) value.
-  const userToggledAutocompleteRef = useRef(false)
-  useEffect(() => {
-    let stale = false
-    void loadTerminalAutocompleteEnabled().then((enabled) => {
-      if (!stale && !userToggledAutocompleteRef.current) {
-        setAutocompleteEnabled(enabled)
-      }
-    })
-    return () => {
-      stale = true
-    }
-  }, [])
-  const toggleAutocomplete = useCallback((next: boolean) => {
-    userToggledAutocompleteRef.current = true
-    setAutocompleteEnabled(next)
-    void saveTerminalAutocompleteEnabled(next)
-  }, [])
+  const autocomplete = useStoredToggleSetting({
+    load: loadTerminalAutocompleteEnabled,
+    save: saveTerminalAutocompleteEnabled
+  })
 
-  const [defaultLiveInput, setDefaultLiveInput] = useState(true)
-  const userToggledDefaultLiveInputRef = useRef(false)
-  useEffect(() => {
-    let stale = false
-    void loadTerminalDefaultInputMode().then((mode) => {
-      if (!stale && !userToggledDefaultLiveInputRef.current) {
-        setDefaultLiveInput(mode === 'live')
-      }
-    })
-    return () => {
-      stale = true
-    }
-  }, [])
-  const toggleDefaultLiveInput = useCallback((next: boolean) => {
-    userToggledDefaultLiveInputRef.current = true
-    setDefaultLiveInput(next)
-    void saveTerminalDefaultInputMode(next ? 'live' : 'buffered')
-  }, [])
+  const defaultLiveInput = useStoredToggleSetting({
+    load: async () => (await loadTerminalDefaultInputMode()) === 'live',
+    save: (value) => saveTerminalDefaultInputMode(value ? 'live' : 'buffered')
+  })
 
   useEffect(() => {
     let cancelled = false
@@ -356,20 +328,12 @@ export default function TerminalSettingsScreen() {
           opens with; the arrow button above the keyboard still switches an individual terminal.
         </Text>
         <View style={[styles.section, styles.sectionTopGap]}>
-          <View style={styles.row}>
-            <View style={styles.rowContent}>
-              <Text style={styles.rowLabel}>Start terminals in direct input</Text>
-              <Text style={styles.rowSublabel}>
-                {defaultLiveInput ? 'Direct keyboard input' : 'Command box'}
-              </Text>
-            </View>
-            <Switch
-              value={defaultLiveInput}
-              onValueChange={toggleDefaultLiveInput}
-              trackColor={{ false: colors.bgRaised, true: colors.textSecondary }}
-              thumbColor={colors.textPrimary}
-            />
-          </View>
+          <TerminalSettingsToggleRow
+            label="Start terminals in direct input"
+            setting={defaultLiveInput.setting}
+            describeValue={(value) => (value ? 'Direct keyboard input' : 'Command box')}
+            onValueChange={defaultLiveInput.setValue}
+          />
         </View>
 
         <Text style={[styles.groupDescription, styles.sectionTopGap]}>
@@ -379,18 +343,12 @@ export default function TerminalSettingsScreen() {
           so suggestions don&apos;t apply there.
         </Text>
         <View style={[styles.section, styles.sectionTopGap]}>
-          <View style={styles.row}>
-            <View style={styles.rowContent}>
-              <Text style={styles.rowLabel}>Autocomplete &amp; autocorrect</Text>
-              <Text style={styles.rowSublabel}>{autocompleteEnabled ? 'On' : 'Off'}</Text>
-            </View>
-            <Switch
-              value={autocompleteEnabled}
-              onValueChange={toggleAutocomplete}
-              trackColor={{ false: colors.bgRaised, true: colors.textSecondary }}
-              thumbColor={colors.textPrimary}
-            />
-          </View>
+          <TerminalSettingsToggleRow
+            label="Autocomplete & autocorrect"
+            setting={autocomplete.setting}
+            describeValue={(value) => (value ? 'On' : 'Off')}
+            onValueChange={autocomplete.setValue}
+          />
         </View>
 
         <TerminalShortcutSettings
