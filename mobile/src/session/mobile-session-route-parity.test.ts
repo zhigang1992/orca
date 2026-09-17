@@ -46,7 +46,6 @@ const SURFACE_EXPANSION_NAMES = new Set([
   'MobileSessionContentRow',
   'MobileSessionActiveContent',
   'MobileSessionCommandDock',
-  'MobileTerminalCommandComposer',
   'MobileSessionSheets'
 ])
 const CONTENT_COMPONENT_NAMES = ['MarkdownReader', 'DiffLineRow', 'FileReader'] as const
@@ -113,21 +112,15 @@ const HEAD_TIMER_CLEANUP_SHA256 = 'c73f1d1c2cc89642f3d727d6f3b6b81860a9d6f342345
 // spelled at the call site.
 // One literal fewer: the live capture's `useState('')` seed went with the move to an external
 // store, and the live-input focus lifecycle key dropped `connState` so a reconnect stops blurring
-// the focused field. Refreshed again for the expandable command composer: the buffered input bar
-// moved to MobileTerminalCommandComposer (added to the surface expansion so its JSX stays ratcheted)
-// and gained an expand control, `multiline` and `submitBehavior`.
+// the focused field.
 const HEAD_RUNTIME_STRING_SHA256 =
-  'f91f61084c158047a33b2074d3dcccd743f3eaf38ba100d65abac5069918e3a4'
+  'c0e4561bd3cb6b396a7c99478fe366ca6e1e4fe7eaf2c06d2ea1495ec911a1b3'
 // The live capture's `editable` moved from `canSend` to `canHoldLiveKeyboard`, which holds the
-// keyboard open while a lagging tab snapshot has not published the handle yet. Count then rose by
-// one host node for the composer's expand Pressable.
-const HEAD_HOST_JSX_SHA256 = '98adb5ffc9aba143c9c66fbc5061c30961984b626ea492313d462b78ee527f8d'
-// Two leaves more: the expand control's ChevronUp/ChevronDown.
-const HEAD_LEAF_JSX_SHA256 = '32b44c517417e4f75dd28fb9f1bcd4c54818344224b9ea5bc864d8b99e5bea9c'
-// Six style references more: the expanded dock, input bar and text input variants, plus the
-// expand key's own pressed/disabled states.
+// keyboard open while a lagging tab snapshot has not published the handle yet. Count unchanged.
+const HEAD_HOST_JSX_SHA256 = '00b5f032309b77cfab898e66c9e121ed4a5d082353db57de2874b8475d544ea8'
+const HEAD_LEAF_JSX_SHA256 = '21dba981875e173f692590bf910d60964660c5f4cbb79f3a377c7e54f6a1f016'
 const HEAD_STYLE_REFERENCE_SHA256 =
-  'e4cdc257284e69698be4324467b140749f39be322090bbbfd84865ab1c078baf'
+  '295a3501c2c6d7bea7c8bbf38b3f3534f01344cd7e1b91bb8e07c040821d596a'
 const HEAD_IDENTITY_FIELD_SHA256 =
   '91146853930a34dd1f3d80e5c97fbacd7cf19fb93dd26fe8fc6f29169622f9d6'
 const HEAD_NAVIGATION_SHA256 = '9d96f5dad7de555d6553eac39c0fab00efad507470fd562cb9beaa32db16f512'
@@ -561,14 +554,14 @@ describe('mobile session route extraction parity', () => {
 
   it('preserves runtime strings, styles, and the expanded JSX tree', () => {
     const strings = readRuntimeStrings()
-    expect(strings).toHaveLength(538)
+    expect(strings).toHaveLength(530)
     expect(hash(strings)).toBe(HEAD_RUNTIME_STRING_SHA256)
     const jsx = readJsxFacts(readDefinitions())
-    expect(jsx.host).toHaveLength(125)
+    expect(jsx.host).toHaveLength(124)
     expect(hash(jsx.host)).toBe(HEAD_HOST_JSX_SHA256)
-    expect(jsx.leaf).toHaveLength(63)
+    expect(jsx.leaf).toHaveLength(61)
     expect(hash(jsx.leaf)).toBe(HEAD_LEAF_JSX_SHA256)
-    expect(jsx.styleReferences).toHaveLength(178)
+    expect(jsx.styleReferences).toHaveLength(172)
     expect(hash(jsx.styleReferences)).toBe(HEAD_STYLE_REFERENCE_SHA256)
   })
 })

@@ -109,16 +109,11 @@ describe('terminal send keyboard dismissal wiring', () => {
 
   it('keeps buffered Return focused until accepted-agent dismissal runs', () => {
     const slice = sourceSlice(
-      readMobileSessionRouteSource('./MobileTerminalCommandComposer.tsx'),
+      commandDockSource,
       'ref={commandInputRef}',
       'onSubmitEditing={() => void handleSend()}'
     )
-    // The field is multiline so the composer can expand without a native remount,
-    // and Return defaults to a newline there. submitBehavior="submit" is what now
-    // carries the old blurOnSubmit={false} invariant: Return submits, never blurs.
-    expect(slice).toContain('multiline')
-    expect(slice).toContain('submitBehavior="submit"')
-    expect(slice).not.toContain('blurOnSubmit={')
+    expect(slice).toContain('blurOnSubmit={false}')
   })
 
   it('restores a rejected buffered draft by origin without generation fencing', () => {

@@ -67,19 +67,6 @@ export const mobileSessionCommandInputStyles = StyleSheet.create({
   commandDock: {
     zIndex: 20
   },
-  // Why absolute rather than letting the dock grow in flow: the terminal must not
-  // resize when the composer expands. MobileSessionContentRow already translates
-  // the dock instead of resizing so keyboard toggles can't trigger a server-side
-  // PTY viewport change, and expanding has to respect the same rule. Pinning
-  // top/bottom also caps the composer at the content area with no measurement.
-  commandDockExpanded: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'flex-end'
-  },
   accessoryBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -162,32 +149,6 @@ export const mobileSessionCommandInputStyles = StyleSheet.create({
     borderTopColor: colors.borderSubtle,
     backgroundColor: colors.bgPanel
   },
-  // Why flexShrink: expanded, the bar's content can exceed the content area;
-  // shrinking keeps it inside instead of overflowing past the tab strip.
-  inputBarExpanded: {
-    flexShrink: 1,
-    alignItems: 'flex-end'
-  },
-  textInputExpanded: {
-    flex: 1,
-    height: undefined,
-    minHeight: 34,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.sm
-  },
-  expandKey: {
-    width: 34,
-    height: 34,
-    borderRadius: radii.input,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.sm
-  },
-  // Why multiline even when compact: switching the prop at runtime swaps
-  // UITextField for UITextView on iOS, a native remount that would end an
-  // in-progress dictation. The field is multiline from the start and only its
-  // box grows. paddingTop centres the single compact line, which paddingVertical: 0
-  // did for the old single-line field.
   textInput: {
     flex: 1,
     height: 34,
@@ -195,8 +156,7 @@ export const mobileSessionCommandInputStyles = StyleSheet.create({
     color: colors.textPrimary,
     borderRadius: radii.input,
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-    paddingBottom: 0,
+    paddingVertical: 0,
     fontSize: 14,
     fontFamily: typography.monoFamily,
     marginRight: spacing.sm
