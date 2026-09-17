@@ -1,6 +1,6 @@
+import { useEffect, useRef, useState } from 'react'
 import { View, Text, ScrollView, TextInput, Pressable, Platform } from 'react-native'
 import {
-  ArrowUp,
   ChevronDown,
   ChevronsRight,
   Keyboard as KeyboardIcon,
@@ -11,10 +11,8 @@ import {
 import { triggerMediumImpact } from '../platform/haptics'
 import { createTerminalLiveAccessoryInput } from '../terminal/terminal-live-accessory-input'
 import { useTerminalLiveInputCapture } from '../terminal/terminal-live-input-capture-store'
-import {
-  getTerminalCommandKeyboardType,
-  getTerminalLiveInputKeyboardType
-} from '../terminal/terminal-keyboard-type'
+import { getTerminalLiveInputKeyboardType } from '../terminal/terminal-keyboard-type'
+import { MobileTerminalCommandComposer } from './MobileTerminalCommandComposer'
 import { MobileTerminalLiveInputStatus } from './MobileTerminalLiveInputStatus'
 import { MobileTerminalInputActions } from './MobileTerminalInputActions'
 import { isTerminalPhoneDisplayMode } from './mobile-session-route-helpers'
@@ -26,7 +24,6 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
   const {
     insets,
     bufferedTerminalDraftState,
-    autocompleteEnabled,
     liveInputCaptureStore,
     activeHandle,
     customKeys,
@@ -37,7 +34,6 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
     canPaste,
     dictationMode,
     liveInputRef,
-    commandInputRef,
     handleLiveInputChange,
     handleLiveInputKeyPress,
     handleLiveInputSubmit,
@@ -57,7 +53,6 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
     handleDictationPressIn,
     handleDictationPressOut,
     toggleDisplayMode,
-    handleSend,
     handleAccessoryKey,
     dismissSoftwareKeyboard,
     toggleLiveInput,
@@ -74,6 +69,26 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
   // Why: subscribed here, not lifted to screen state, so a keystroke re-renders
   // this dock instead of the whole session surface.
   const liveInputCapture = useTerminalLiveInputCapture(liveInputCaptureStore)
+  const [composerExpanded, setComposerExpanded] = useState(false)
+  const bufferedDraft = bufferedTerminalDraftState.input
+  const previousBufferedDraftRef = useRef(bufferedDraft)
+  useEffect(() => {
+    // Why collapse on the non-empty -> empty transition rather than on send: an
+    // accepted send clears the draft, and a tall empty box would cover the output
+    // it just produced. A rejected send restores the text, so the box stays up.
+    // Expanding an already-empty box (the usual case before dictating) is untouched.
+    const emptiedBySend = previousBufferedDraftRef.current !== '' && bufferedDraft === ''
+    previousBufferedDraftRef.current = bufferedDraft
+    if (emptiedBySend) {
+      setComposerExpanded(false)
+    }
+  }, [bufferedDraft])
+  // Why: the expanded overlay belongs to one terminal's draft, and live mode has
+  // no local buffer to show at all.
+  useEffect(() => {
+    setComposerExpanded(false)
+  }, [activeHandle, liveInputEnabled])
+  const expandedComposer = composerExpanded && !liveInputEnabled
   return (
     !activeMarkdownTab &&
     !activeFileTab &&
@@ -82,8 +97,12 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
       <View
         style={[
           styles.commandDock,
+          expandedComposer && styles.commandDockExpanded,
           { paddingBottom: insets.bottom, transform: [{ translateY: -keyboardLift }] }
         ]}
+        // Why box-none: expanded, the dock spans the content area, and taps above
+        // the bar must still reach the terminal behind it.
+        pointerEvents={expandedComposer ? 'box-none' : 'auto'}
       >
         {/* Accessory keys */}
         <View style={styles.accessoryBar}>
@@ -336,60 +355,11 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
             />
           </View>
         ) : (
-          <View style={styles.inputBar}>
-            <TextInput
-              ref={commandInputRef}
-              // Why: Android caches IME inputType at mount, so toggling autocomplete must remount there; iOS updates in place.
-              key={
-                Platform.OS === 'android'
-                  ? autocompleteEnabled
-                    ? 'cmd-input-ac-on'
-                    : 'cmd-input-ac-off'
-                  : 'cmd-input'
-              }
-              style={styles.textInput}
-              value={bufferedTerminalDraftState.input}
-              // Why: iOS kills active dictation/IME if JS writes a value differing from native text; store raw, normalize at send.
-              onChangeText={bufferedTerminalDraftState.setInput}
-              placeholder="Type a command…"
-              placeholderTextColor={colors.textMuted}
-              autoCapitalize="none"
-              autoCorrect={autocompleteEnabled}
-              spellCheck={autocompleteEnabled}
-              smartInsertDelete={false}
-              // Why: not autofill content, but keyboard must stay default so non-Latin IMEs remain selectable.
-              autoComplete="off"
-              keyboardType={getTerminalCommandKeyboardType(Platform.OS, autocompleteEnabled)}
-              returnKeyType="send"
-              blurOnSubmit={false}
-              // Why: composing is local — an outage must not lock the field or discard typed text (#6713).
-              editable={canCompose}
-              onSubmitEditing={() => void handleSend()}
-            />
-            <MobileTerminalInputActions
-              canSend={canSend}
-              isAttaching={isAttaching}
-              dictation={dictation}
-              dictationMode={dictationMode}
-              buttonStyle={styles.dictationButton}
-              activeButtonStyle={styles.dictationButtonActive}
-              disabledButtonStyle={styles.sendButtonDisabled}
-              onAttachImage={() => void attachImage('library')}
-              onAttachFile={() => void attachImage('files')}
-              onDictationToggle={handleDictationToggle}
-              onDictationPressIn={handleDictationPressIn}
-              onDictationPressOut={handleDictationPressOut}
-              onDictationCancel={cancelDictation}
-            />
-            <Pressable
-              style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
-              disabled={!canSend}
-              onPress={() => void handleSend()}
-              accessibilityLabel="Send command"
-            >
-              <ArrowUp size={18} color={colors.textSecondary} strokeWidth={2.5} />
-            </Pressable>
-          </View>
+          <MobileTerminalCommandComposer
+            controller={controller}
+            expanded={expandedComposer}
+            onToggleExpanded={() => setComposerExpanded((current) => !current)}
+          />
         )}
       </View>
     )

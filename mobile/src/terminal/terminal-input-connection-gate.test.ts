@@ -13,6 +13,9 @@ const terminalInputSource = readMobileSessionRouteSource(
   '../session/use-mobile-session-terminal-input.ts'
 )
 const commandDockSource = readMobileSessionRouteSource('../session/MobileSessionCommandDock.tsx')
+const commandComposerSource = readMobileSessionRouteSource(
+  '../session/MobileTerminalCommandComposer.tsx'
+)
 
 function sourceSlice(source: string, anchorStart: string, anchorEnd: string): string {
   const start = source.indexOf(anchorStart)
@@ -102,7 +105,7 @@ describe('session route offline-compose wiring', () => {
 
   it('keeps the buffered command box editable offline while the live capture stays send-gated', () => {
     const bufferedInput = sourceSlice(
-      commandDockSource,
+      commandComposerSource,
       'ref={commandInputRef}',
       'onSubmitEditing={() => void handleSend()}'
     )
@@ -118,7 +121,7 @@ describe('session route offline-compose wiring', () => {
 
   it('keeps the send button connection-gated so held text cannot fire into a dead link', () => {
     const sendButton = sourceSlice(
-      commandDockSource,
+      commandComposerSource,
       'styles.sendButton,',
       'accessibilityLabel="Send command"'
     )
