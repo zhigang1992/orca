@@ -130,6 +130,30 @@ export function defaultTerminalLiveInputHandles(
   }
 }
 
+// Why: with a buffered device default, a first-seen handle must still be marked
+// defaulted, or every later tab refresh would retry the default on it.
+export function markTerminalLiveInputHandlesDefaulted(
+  enabledHandles: ReadonlySet<string>,
+  defaultedHandles: ReadonlySet<string>,
+  terminalHandles: readonly string[]
+): TerminalLiveInputDefaultResult {
+  let nextDefaultedHandles: Set<string> | null = null
+
+  for (const handle of terminalHandles) {
+    if (defaultedHandles.has(handle)) {
+      continue
+    }
+    nextDefaultedHandles ??= new Set(defaultedHandles)
+    nextDefaultedHandles.add(handle)
+  }
+
+  if (!nextDefaultedHandles) {
+    return { enabledHandles, defaultedHandles, changed: false }
+  }
+
+  return { enabledHandles, defaultedHandles: nextDefaultedHandles, changed: true }
+}
+
 export function filterTerminalLiveInputDefaultCandidates(
   terminalHandles: readonly string[],
   disabledHandles: ReadonlySet<string>

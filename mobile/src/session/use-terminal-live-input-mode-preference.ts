@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  loadTerminalDefaultInputMode,
   readDisabledTerminalLiveInputHandlesPreference,
-  saveDisabledTerminalLiveInputHandles
+  saveDisabledTerminalLiveInputHandles,
+  type TerminalDefaultInputMode
 } from '../storage/preferences'
 import {
   applyDisabledTerminalLiveInputHandles,
   defaultTerminalLiveInputHandles,
   filterTerminalLiveInputDefaultCandidates,
+  markTerminalLiveInputHandlesDefaulted,
   pruneTerminalLiveInputHandles
 } from '../terminal/terminal-live-input'
 
@@ -28,6 +31,14 @@ export function useTerminalLiveInputModePreference({
   const disabledLiveInputHydratedRef = useRef(false)
   const pendingDisabledLiveInputHydrationEditsRef = useRef<Map<string, boolean>>(new Map())
   const pendingLiveInputDefaultHandlesRef = useRef<Set<string>>(new Set())
+  const defaultInputModeRef = useRef<TerminalDefaultInputMode>('live')
+
+  // Why: a Settings → Terminal change must reach terminals opened after the user
+  // returns, without retroactively flipping terminals already on screen. The
+  // route's preference-focus hook owns the reload; this hook only holds the value.
+  const refreshTerminalDefaultInputMode = useCallback(async () => {
+    defaultInputModeRef.current = await loadTerminalDefaultInputMode()
+  }, [])
 
   const defaultTerminalHandlesToLiveInput = useCallback((handles: readonly string[]) => {
     // Why: terminal discovery (tab snapshots, list poll, create) can arrive
@@ -42,7 +53,11 @@ export function useTerminalLiveInputModePreference({
       handles,
       disabledLiveInputTerminalHandlesRef.current
     )
-    const result = defaultTerminalLiveInputHandles(
+    const applyDefault =
+      defaultInputModeRef.current === 'buffered'
+        ? markTerminalLiveInputHandlesDefaulted
+        : defaultTerminalLiveInputHandles
+    const result = applyDefault(
       liveInputTerminalHandlesRef.current,
       defaultedLiveInputTerminalHandlesRef.current,
       defaultableHandles
@@ -163,10 +178,16 @@ export function useTerminalLiveInputModePreference({
     let disposed = false
     // Why: load the persisted opt-outs first so defaulting logic (which can
     // fire immediately from subscriptions) respects prior user choices.
-    void readDisabledTerminalLiveInputHandlesPreference(hostId, worktreeId).then((preference) => {
+    void Promise.all([
+      readDisabledTerminalLiveInputHandlesPreference(hostId, worktreeId),
+      loadTerminalDefaultInputMode()
+    ]).then(([preference, defaultInputMode]) => {
       if (disposed) {
         return
       }
+      // Why: the device default gates the same queued handles this hydration
+      // releases, so it has to land before they are defaulted, not after.
+      defaultInputModeRef.current = defaultInputMode
       const pendingEdits = pendingDisabledLiveInputHydrationEditsRef.current
       const hydratedDisabledHandles = new Set(preference.handles)
       for (const [handle, disabled] of pendingEdits) {
@@ -207,6 +228,7 @@ export function useTerminalLiveInputModePreference({
     liveInputTerminalHandles,
     liveInputTerminalHandlesRef,
     pruneTerminalHandlesFromLiveInput,
+    refreshTerminalDefaultInputMode,
     toggleTerminalLiveInput
   }
 }

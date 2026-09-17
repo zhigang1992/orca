@@ -32,7 +32,7 @@ describe('terminal input connection gate', () => {
         activeHandle: 'terminal-a',
         activeSessionTabType: 'terminal'
       })
-    ).toEqual({ canCompose: true, canSend: true })
+    ).toEqual({ canCompose: true, canHoldLiveKeyboard: true, canSend: true })
   })
 
   it('Given a cut connection Then composing stays available while sending is blocked', () => {
@@ -49,11 +49,11 @@ describe('terminal input connection gate', () => {
           activeHandle: 'terminal-a',
           activeSessionTabType: 'terminal'
         })
-      ).toEqual({ canCompose: true, canSend: false })
+      ).toEqual({ canCompose: true, canHoldLiveKeyboard: false, canSend: false })
     }
   })
 
-  it('Given a non-terminal tab or no handle Then neither composing nor sending is allowed', () => {
+  it('Given a non-terminal tab or no surface at all Then neither composing nor sending is allowed', () => {
     for (const activeSessionTabType of ['markdown', 'file', 'browser']) {
       expect(
         resolveMobileTerminalInputGate({
@@ -61,15 +61,27 @@ describe('terminal input connection gate', () => {
           activeHandle: 'terminal-a',
           activeSessionTabType
         })
-      ).toEqual({ canCompose: false, canSend: false })
+      ).toEqual({ canCompose: false, canHoldLiveKeyboard: false, canSend: false })
     }
+    expect(
+      resolveMobileTerminalInputGate({
+        connState: 'connected',
+        activeHandle: null,
+        activeSessionTabType: undefined
+      })
+    ).toEqual({ canCompose: false, canHoldLiveKeyboard: false, canSend: false })
+  })
+
+  it('Given a terminal tab whose handle has not caught up Then composing holds and sending is blocked', () => {
+    // A lagging snapshot nulls the handle for a frame; dropping canCompose there
+    // sets editable={false} on the focused field and closes the keyboard.
     expect(
       resolveMobileTerminalInputGate({
         connState: 'connected',
         activeHandle: null,
         activeSessionTabType: 'terminal'
       })
-    ).toEqual({ canCompose: false, canSend: false })
+    ).toEqual({ canCompose: true, canHoldLiveKeyboard: true, canSend: false })
   })
 
   it('Given a lagging tab list yielding no tab Then the gate treats the type as unknown, not non-terminal', () => {
@@ -79,7 +91,7 @@ describe('terminal input connection gate', () => {
         activeHandle: 'terminal-a',
         activeSessionTabType: undefined
       })
-    ).toEqual({ canCompose: true, canSend: false })
+    ).toEqual({ canCompose: true, canHoldLiveKeyboard: false, canSend: false })
   })
 })
 
@@ -101,7 +113,7 @@ describe('session route offline-compose wiring', () => {
       'ref={liveInputRef}',
       'importantForAutofill="no"'
     )
-    expect(liveCapture).toContain('editable={canSend}')
+    expect(liveCapture).toContain('editable={canHoldLiveKeyboard}')
   })
 
   it('keeps the send button connection-gated so held text cannot fire into a dead link', () => {

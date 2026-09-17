@@ -10,6 +10,7 @@ import {
 } from 'lucide-react-native'
 import { triggerMediumImpact } from '../platform/haptics'
 import { createTerminalLiveAccessoryInput } from '../terminal/terminal-live-accessory-input'
+import { useTerminalLiveInputCapture } from '../terminal/terminal-live-input-capture-store'
 import {
   getTerminalCommandKeyboardType,
   getTerminalLiveInputKeyboardType
@@ -26,7 +27,7 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
     insets,
     bufferedTerminalDraftState,
     autocompleteEnabled,
-    liveInputCapture,
+    liveInputCaptureStore,
     activeHandle,
     customKeys,
     setShowCustomKeyModal,
@@ -46,6 +47,7 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
     activeSessionTab,
     canSend,
     canCompose,
+    canHoldLiveKeyboard,
     liveInputEnabled,
     focusLiveInput,
     showNativeChat,
@@ -69,6 +71,9 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
     activeBrowserTab,
     keyboardLift
   } = controller
+  // Why: subscribed here, not lifted to screen state, so a keystroke re-renders
+  // this dock instead of the whole session surface.
+  const liveInputCapture = useTerminalLiveInputCapture(liveInputCaptureStore)
   return (
     !activeMarkdownTab &&
     !activeFileTab &&
@@ -323,7 +328,10 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
               keyboardType={getTerminalLiveInputKeyboardType(Platform.OS)}
               returnKeyType="default"
               blurOnSubmit={false}
-              editable={canSend}
+              // Why: editable={canSend} also tracked the active handle, so a
+              // lagging tab snapshot resigned first responder and closed the
+              // keyboard mid-typing. Sends stay gated on canSend.
+              editable={canHoldLiveKeyboard}
               importantForAutofill="no"
             />
           </View>

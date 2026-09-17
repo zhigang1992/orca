@@ -8,6 +8,7 @@ import {
 } from '../terminal/terminal-accessory-layout'
 import type { CustomKey } from '../components/CustomKeyModal'
 import type { MobileNewTabAgentOption } from './mobile-new-tab-agent-options'
+import { createTerminalLiveInputCaptureStore } from '../terminal/terminal-live-input-capture-store'
 import { useTerminalLiveInputModePreference } from './use-terminal-live-input-mode-preference'
 import type { AppliedSnapshotMarker } from './session-tab-snapshot-gate'
 import { useWorktreeSessionTabsLoaded } from './use-initial-session-terminal-autocreate'
@@ -45,13 +46,15 @@ export function useMobileSessionScreenState(scope: MobileSessionFoundationModel)
   const [autocompleteEnabled, setAutocompleteEnabled] = useState(false)
   const [terminalLinkOpenMode, setTerminalLinkOpenMode] =
     useState<MobileTerminalLinkOpenMode>('orca-browser')
-  const [liveInputCapture, setLiveInputCapture] = useState('')
+  const liveInputCaptureStore = useMemo(() => createTerminalLiveInputCaptureStore(), [])
+  const setLiveInputCapture = liveInputCaptureStore.setText
   const {
     clearTerminalLiveInputDefault,
     defaultTerminalHandlesToLiveInput,
     liveInputTerminalHandles,
     liveInputTerminalHandlesRef,
     pruneTerminalHandlesFromLiveInput,
+    refreshTerminalDefaultInputMode,
     toggleTerminalLiveInput
   } = useTerminalLiveInputModePreference({ hostId, worktreeId })
   const [activeHandle, setActiveHandle] = useState<string | null>(null)
@@ -144,13 +147,14 @@ export function useMobileSessionScreenState(scope: MobileSessionFoundationModel)
     setAutocompleteEnabled,
     terminalLinkOpenMode,
     setTerminalLinkOpenMode,
-    liveInputCapture,
+    liveInputCaptureStore,
     setLiveInputCapture,
     clearTerminalLiveInputDefault,
     defaultTerminalHandlesToLiveInput,
     liveInputTerminalHandles,
     liveInputTerminalHandlesRef,
     pruneTerminalHandlesFromLiveInput,
+    refreshTerminalDefaultInputMode,
     toggleTerminalLiveInput,
     activeHandle,
     setActiveHandle,

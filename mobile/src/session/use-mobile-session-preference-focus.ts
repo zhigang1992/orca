@@ -8,7 +8,12 @@ import {
 import type { MobileSessionKeyboardStateModel } from './use-mobile-session-keyboard-state'
 
 export function useMobileSessionPreferenceFocus(scope: MobileSessionKeyboardStateModel) {
-  const { setTerminalTextScale, setAutocompleteEnabled, setTerminalLinkOpenMode } = scope
+  const {
+    setTerminalTextScale,
+    setAutocompleteEnabled,
+    setTerminalLinkOpenMode,
+    refreshTerminalDefaultInputMode
+  } = scope
   // Why: pick up Settings → Terminal text size on return; panes stay mounted and update in place.
   useFocusEffect(
     useCallback(() => {
@@ -37,6 +42,14 @@ export function useMobileSessionPreferenceFocus(scope: MobileSessionKeyboardStat
         active = false
       }
     }, [])
+  )
+
+  // Why: pick up the Settings → Terminal default input mode for terminals opened
+  // after this return; terminals already on screen keep the mode they have.
+  useFocusEffect(
+    useCallback(() => {
+      void refreshTerminalDefaultInputMode()
+    }, [refreshTerminalDefaultInputMode])
   )
 
   // Why: link routing is a phone-local choice; reload after Settings → Browser.

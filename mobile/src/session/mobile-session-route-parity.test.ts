@@ -62,10 +62,18 @@ const HOST_COMPONENT_NAMES = new Set([
   'View'
 ])
 
-const HEAD_MAIN_HOOK_SHA256 = '1b436d21f48e4d7b316178ba9eb7d8f0d3801ffd4e42b6b8987adb1cfcbac570'
-const HEAD_HOOK_BINDING_SHA256 = '5b324d661574950c24c47ad9675afc40f34bf3d6dc0ea7b81a469cf708803dc8'
+// Refreshed for the terminal input-mode work: the live capture's `useState` became a `useMemo`
+// over an external store (a keystroke no longer re-renders the session surface), the live-input
+// mode preference gained a `useCallback` that reloads the device default, and the preference-focus
+// hook gained the `useFocusEffect` that calls it. Net +2 hooks.
+const HEAD_MAIN_HOOK_SHA256 = '29dbdfcc7da8c4b4b78a54a95a7cf4506040b232982aba3052eb7198854fc57e'
+// Same refresh: `liveInputCapture` state became a `liveInputCaptureStore` binding, and the
+// preference hook now also binds `refreshTerminalDefaultInputMode`.
+const HEAD_HOOK_BINDING_SHA256 = '12bc0fffa0c7ba0d487e3f0ec86173106c1150ae8154dbf3f2df695c1c8679aa'
+// One callback more: `refreshTerminalDefaultInputMode`, which reloads the Settings → Terminal
+// default input mode for terminals opened after the user returns to the session.
 const HEAD_CALLBACK_IDENTITY_SHA256 =
-  '2a9e4825df007f6ef53b81aa5004991d6318eee7507b44d625c07e630be432eb'
+  '6a36067fa12eb6a9a016d4c812ceb038b5e58e4ee04fcdafbf85bd79d520b74d'
 // Pins that no callback body in the route changed unnoticed. Body text, not behaviour: the sends
 // and repo reads inside them now name their `RpcOperation` instead of the raw `sendRequest` port.
 // Refreshed in step 6 for the gesture flush, whose `terminal.send` became `terminalInputSend` and
@@ -74,7 +82,8 @@ const HEAD_CALLBACK_IDENTITY_SHA256 =
 // reply casts the checked readers made unnecessary — the markdown tab doc, the worktree record's
 // `diffComments` and the browser tab's page id are typed by their schemas now. Refreshed once more
 // on the merge, for the display-mode toggle whose send became `terminalDisplayModeSet`.
-const HEAD_CALLBACK_BODY_SHA256 = 'e3b41d4ab755be2ac2b8c268f3b94a5ec91f620233b5761707bbd1791d106f95'
+// Refreshed for the new `refreshTerminalDefaultInputMode` body.
+const HEAD_CALLBACK_BODY_SHA256 = 'e6dfd747d5d9fb71e9f35577df8122433669a1fd4c270f2d44aafb9c958340c8'
 // Refreshed for the startup effect: both `worktree.activate` sends became `worktreeActivate`, and
 // the sleeping-agent check reads that operation's verdict instead of the reply envelope. Refreshed
 // again when the reporter took the reply and interpreted it itself, retiring the hand-built
@@ -101,9 +110,14 @@ const HEAD_TIMER_CLEANUP_SHA256 = 'c73f1d1c2cc89642f3d727d6f3b6b81860a9d6f342345
 // first, then `worktree.activate` twice, `session.tabs.createTerminal` and
 // `terminal.setDisplayMode`. Each is now fixed at its operation's definition instead of being
 // spelled at the call site.
+// One literal fewer: the live capture's `useState('')` seed went with the move to an external
+// store, and the live-input focus lifecycle key dropped `connState` so a reconnect stops blurring
+// the focused field.
 const HEAD_RUNTIME_STRING_SHA256 =
-  'a5496f14589916b027334a236630720b39eb0360d91538d212b408c1f61bb523'
-const HEAD_HOST_JSX_SHA256 = '390405926b1695fa3a33686f0bc192b432f5468d8576499d7cafbb4922defbb5'
+  'c0e4561bd3cb6b396a7c99478fe366ca6e1e4fe7eaf2c06d2ea1495ec911a1b3'
+// The live capture's `editable` moved from `canSend` to `canHoldLiveKeyboard`, which holds the
+// keyboard open while a lagging tab snapshot has not published the handle yet. Count unchanged.
+const HEAD_HOST_JSX_SHA256 = '00b5f032309b77cfab898e66c9e121ed4a5d082353db57de2874b8475d544ea8'
 const HEAD_LEAF_JSX_SHA256 = '21dba981875e173f692590bf910d60964660c5f4cbb79f3a377c7e54f6a1f016'
 const HEAD_STYLE_REFERENCE_SHA256 =
   '295a3501c2c6d7bea7c8bbf38b3f3534f01344cd7e1b91bb8e07c040821d596a'
@@ -495,10 +509,10 @@ describe('mobile session route extraction parity', () => {
     const contentBindings = CONTENT_COMPONENT_NAMES.flatMap(
       (name) => readHookFacts(name, definitions).bindings
     )
-    expect(main.hooks).toHaveLength(270)
+    expect(main.hooks).toHaveLength(272)
     expect(hash(main.hooks)).toBe(HEAD_MAIN_HOOK_SHA256)
     expect(hash(main.bindings)).toBe(HEAD_HOOK_BINDING_SHA256)
-    expect(main.callbacks).toHaveLength(77)
+    expect(main.callbacks).toHaveLength(78)
     expect(hash(main.callbacks)).toBe(HEAD_CALLBACK_IDENTITY_SHA256)
     expect(hash(main.callbackBodies)).toBe(HEAD_CALLBACK_BODY_SHA256)
     expect(main.effects).toHaveLength(24)
@@ -540,7 +554,7 @@ describe('mobile session route extraction parity', () => {
 
   it('preserves runtime strings, styles, and the expanded JSX tree', () => {
     const strings = readRuntimeStrings()
-    expect(strings).toHaveLength(531)
+    expect(strings).toHaveLength(530)
     expect(hash(strings)).toBe(HEAD_RUNTIME_STRING_SHA256)
     const jsx = readJsxFacts(readDefinitions())
     expect(jsx.host).toHaveLength(124)

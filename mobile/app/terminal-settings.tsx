@@ -20,8 +20,10 @@ import { setTerminalAutoRestoreFitMsForHost } from '../src/terminal/terminal-aut
 import { terminalSettingsScreenStyles as styles } from '../src/terminal/terminal-settings-screen-styles'
 import {
   loadTerminalAutocompleteEnabled,
+  loadTerminalDefaultInputMode,
   loadTerminalTextScale,
   saveTerminalAutocompleteEnabled,
+  saveTerminalDefaultInputMode,
   saveTerminalTextScale
 } from '../src/storage/preferences'
 
@@ -177,6 +179,25 @@ export default function TerminalSettingsScreen() {
     void saveTerminalAutocompleteEnabled(next)
   }, [])
 
+  const [defaultLiveInput, setDefaultLiveInput] = useState(true)
+  const userToggledDefaultLiveInputRef = useRef(false)
+  useEffect(() => {
+    let stale = false
+    void loadTerminalDefaultInputMode().then((mode) => {
+      if (!stale && !userToggledDefaultLiveInputRef.current) {
+        setDefaultLiveInput(mode === 'live')
+      }
+    })
+    return () => {
+      stale = true
+    }
+  }, [])
+  const toggleDefaultLiveInput = useCallback((next: boolean) => {
+    userToggledDefaultLiveInputRef.current = true
+    setDefaultLiveInput(next)
+    void saveTerminalDefaultInputMode(next ? 'live' : 'buffered')
+  }, [])
+
   useEffect(() => {
     let cancelled = false
     for (const host of hosts) {
@@ -329,6 +350,29 @@ export default function TerminalSettingsScreen() {
 
         <Text style={[styles.groupHeading, styles.inputGroupGap]}>KEYBOARD INPUT</Text>
         <Text style={styles.groupDescription}>
+          Direct input sends every keystroke straight to the terminal, which shells, editors, and
+          TUIs expect. The command box composes the whole line on the phone first and sends it on
+          Enter, so dictation and edits stay local until you send. This sets which one a terminal
+          opens with; the arrow button above the keyboard still switches an individual terminal.
+        </Text>
+        <View style={[styles.section, styles.sectionTopGap]}>
+          <View style={styles.row}>
+            <View style={styles.rowContent}>
+              <Text style={styles.rowLabel}>Start terminals in direct input</Text>
+              <Text style={styles.rowSublabel}>
+                {defaultLiveInput ? 'Direct keyboard input' : 'Command box'}
+              </Text>
+            </View>
+            <Switch
+              value={defaultLiveInput}
+              onValueChange={toggleDefaultLiveInput}
+              trackColor={{ false: colors.bgRaised, true: colors.textSecondary }}
+              thumbColor={colors.textPrimary}
+            />
+          </View>
+        </View>
+
+        <Text style={[styles.groupDescription, styles.sectionTopGap]}>
           Enable phone-style autocomplete, autocorrect, and spelling suggestions in the terminal
           command bar. Off by default so the keyboard never rewrites commands, flags, or paths.
           Direct keyboard input (when keys go straight to the terminal) always sends raw keystrokes,

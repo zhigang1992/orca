@@ -133,6 +133,7 @@ export function useMobileSessionTerminalRuntime(scope: MobileSessionScreenStateM
   })
   const canCompose = inputGate.canCompose
   const canSend = inputGate.canSend && clientId !== null
+  const canHoldLiveKeyboard = inputGate.canHoldLiveKeyboard && clientId !== null
   const liveInputEnabled = activeHandle ? liveInputTerminalHandles.has(activeHandle) : false
   const { focusLiveInput, handleTerminalTap, resetLiveInputFocus } = useTerminalLiveInputFocus({
     activeHandleRef,
@@ -140,7 +141,10 @@ export function useMobileSessionTerminalRuntime(scope: MobileSessionScreenStateM
     inputRef: liveInputRef,
     keyboardHeight,
     lifecycleIdentity: client,
-    lifecycleKey: JSON.stringify([hostId, worktreeId, connState]),
+    // Why: a reconnect is not a surface change. Keying this on connState blurred
+    // the focused capture (closing the keyboard) on every connecting/handshaking
+    // hop; host+worktree identity is the real live-input lifecycle scope.
+    lifecycleKey: JSON.stringify([hostId, worktreeId]),
     liveInputEnabled,
     reopenFocusedInputWhenKeyboardHidden: Platform.OS === 'android',
     timerRef: liveInputFocusTimerRef
@@ -206,6 +210,7 @@ export function useMobileSessionTerminalRuntime(scope: MobileSessionScreenStateM
     handleLiveInputKeyPress,
     handleLiveInputSubmit,
     canCompose,
+    canHoldLiveKeyboard,
     canSend,
     liveInputEnabled,
     focusLiveInput,

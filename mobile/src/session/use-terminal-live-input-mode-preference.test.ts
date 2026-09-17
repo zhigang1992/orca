@@ -2,6 +2,7 @@ import { createElement } from 'react'
 import { act, create, type ReactTestRenderer } from 'react-test-renderer'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  loadTerminalDefaultInputMode,
   readDisabledTerminalLiveInputHandlesPreference,
   saveDisabledTerminalLiveInputHandles,
   type DisabledTerminalLiveInputHandlesPreference
@@ -9,6 +10,7 @@ import {
 import { useTerminalLiveInputModePreference } from './use-terminal-live-input-mode-preference'
 
 vi.mock('../storage/preferences', () => ({
+  loadTerminalDefaultInputMode: vi.fn(async () => 'live'),
   readDisabledTerminalLiveInputHandlesPreference: vi.fn(),
   saveDisabledTerminalLiveInputHandles: vi.fn()
 }))
@@ -71,6 +73,8 @@ describe('terminal live input mode preference hook', () => {
     vi.mocked(readDisabledTerminalLiveInputHandlesPreference).mockReset()
     vi.mocked(saveDisabledTerminalLiveInputHandles).mockReset()
     vi.mocked(saveDisabledTerminalLiveInputHandles).mockResolvedValue()
+    vi.mocked(loadTerminalDefaultInputMode).mockReset()
+    vi.mocked(loadTerminalDefaultInputMode).mockResolvedValue('live')
   })
 
   it('merges pre-hydration edits with loaded disabled handles', async () => {
@@ -116,6 +120,62 @@ describe('terminal live input mode preference hook', () => {
 
     expect([...harness.current.liveInputTerminalHandles]).toEqual(['pty-1'])
     expect(saveDisabledTerminalLiveInputHandles).not.toHaveBeenCalled()
+    harness.unmount()
+  })
+
+  it('leaves first-seen handles buffered when the device default is the command box', async () => {
+    const load = createDeferred<DisabledTerminalLiveInputHandlesPreference>()
+    vi.mocked(readDisabledTerminalLiveInputHandlesPreference).mockReturnValue(load.promise)
+    vi.mocked(loadTerminalDefaultInputMode).mockResolvedValue('buffered')
+    const harness = createTerminalLiveInputModePreferenceHarness()
+
+    act(() => {
+      harness.current.defaultTerminalHandlesToLiveInput(['pty-1'])
+    })
+    await act(async () => {
+      load.resolve({ handles: new Set(), loaded: true })
+      await load.promise
+    })
+
+    expect([...harness.current.liveInputTerminalHandles]).toEqual([])
+
+    // The handle is still marked defaulted, so a later tab refresh cannot retry
+    // the default and flip it to live behind the user.
+    act(() => {
+      harness.current.defaultTerminalHandlesToLiveInput(['pty-1'])
+    })
+    expect([...harness.current.liveInputTerminalHandles]).toEqual([])
+
+    // An explicit toggle still wins over the device default.
+    act(() => {
+      expect(harness.current.toggleTerminalLiveInput('pty-1')).toBe(true)
+    })
+    expect([...harness.current.liveInputTerminalHandles]).toEqual(['pty-1'])
+    harness.unmount()
+  })
+
+  it('applies a default-mode change to handles seen after the refresh', async () => {
+    vi.mocked(readDisabledTerminalLiveInputHandlesPreference).mockResolvedValue({
+      handles: new Set(),
+      loaded: true
+    })
+    const harness = createTerminalLiveInputModePreferenceHarness()
+    await act(async () => {})
+
+    act(() => {
+      harness.current.defaultTerminalHandlesToLiveInput(['pty-1'])
+    })
+    expect([...harness.current.liveInputTerminalHandles]).toEqual(['pty-1'])
+
+    vi.mocked(loadTerminalDefaultInputMode).mockResolvedValue('buffered')
+    await act(async () => {
+      await harness.current.refreshTerminalDefaultInputMode()
+    })
+
+    act(() => {
+      harness.current.defaultTerminalHandlesToLiveInput(['pty-2'])
+    })
+    expect([...harness.current.liveInputTerminalHandles]).toEqual(['pty-1'])
     harness.unmount()
   })
 })

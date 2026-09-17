@@ -117,6 +117,26 @@ export async function saveTerminalAutocompleteEnabled(enabled: boolean): Promise
   await AsyncStorage.setItem(AUTOCOMPLETE_KEY, String(enabled))
 }
 
+const TERMINAL_DEFAULT_LIVE_INPUT_KEY = 'orca:terminalDefaultLiveInput'
+
+export type TerminalDefaultInputMode = 'live' | 'buffered'
+
+// Why: a newly seen terminal handle starts in live (direct) input unless the
+// user has picked buffered as their device-wide default in Settings → Terminal.
+// Per-handle opt-outs still override this for terminals already toggled.
+export async function loadTerminalDefaultInputMode(): Promise<TerminalDefaultInputMode> {
+  try {
+    const raw = await AsyncStorage.getItem(TERMINAL_DEFAULT_LIVE_INPUT_KEY)
+    return raw === 'false' ? 'buffered' : 'live'
+  } catch {
+    return 'live'
+  }
+}
+
+export async function saveTerminalDefaultInputMode(mode: TerminalDefaultInputMode): Promise<void> {
+  await AsyncStorage.setItem(TERMINAL_DEFAULT_LIVE_INPUT_KEY, String(mode === 'live'))
+}
+
 const TERMINAL_LIVE_INPUT_DISABLED_PREFIX = 'orca:terminalLiveInputDisabled:'
 
 export type DisabledTerminalLiveInputHandlesPreference = {
