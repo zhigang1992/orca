@@ -9,10 +9,11 @@ import {
 } from './terminal-rich-input-keydown'
 
 function context() {
+  const fileSuggestions: string[] = []
   return {
     mentionRef: { current: null },
     slashRef: { current: { from: 1, to: 4, query: 'cl' } },
-    fileSuggestionsRef: { current: [] as string[] },
+    fileSuggestionsRef: { current: fileSuggestions },
     slashSuggestionsRef: {
       current: [{ name: 'clear', description: 'Clear conversation' }]
     },

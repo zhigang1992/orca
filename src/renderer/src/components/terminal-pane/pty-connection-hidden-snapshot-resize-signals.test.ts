@@ -361,8 +361,11 @@ describe('connectPanePty', () => {
     ;(pane.terminal.buffer.active as { type: 'normal' | 'alternate' }).type = 'alternate'
     const manager = createManager(1)
     const disposable = connectPanePty(
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the shared mock pane, manager, and deps stand in for the real xterm-backed objects, exactly as every other connectPanePty suite drives them.
       pane as never,
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the shared mock pane, manager, and deps stand in for the real xterm-backed objects, exactly as every other connectPanePty suite drives them.
       manager as never,
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the shared mock pane, manager, and deps stand in for the real xterm-backed objects, exactly as every other connectPanePty suite drives them.
       createDeps({ isVisibleRef: { current: true } }) as never
     )
     await flushAsyncTicks(6)
@@ -375,6 +378,7 @@ describe('connectPanePty', () => {
 
     requestPaneTuiRepaint(pane.container, { cols: 132, rows: 47 })
     expect(transport.resize).toHaveBeenCalledOnce()
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the mock buffer exposes `type` as a mutable field so the suite can leave the alternate screen; xterm's own IBuffer declares it readonly.
     ;(pane.terminal.buffer.active as { type: 'normal' | 'alternate' }).type = 'normal'
     requestPaneTuiRepaint(pane.container, { cols: 133, rows: 47 })
     expect(transport.resize).toHaveBeenCalledOnce()

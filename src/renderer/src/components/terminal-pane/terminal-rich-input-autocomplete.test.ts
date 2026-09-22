@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Editor, Node } from '@tiptap/core'
+import { Node } from '@tiptap/core'
+import { Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import {
   findTerminalRichInputAutocomplete,
@@ -39,23 +40,23 @@ describe('terminal rich input autocomplete queries', () => {
     const mentionEditor = editorWithText('review @src')
     const slashEditor = editorWithText('/comp')
 
-    expect(findTerminalRichInputMentionQuery(mentionEditor as never)?.query).toBe('src')
-    expect(findTerminalRichInputSlashQuery(slashEditor as never)?.query).toBe('comp')
+    expect(findTerminalRichInputMentionQuery(mentionEditor)?.query).toBe('src')
+    expect(findTerminalRichInputSlashQuery(slashEditor)?.query).toBe('comp')
   })
 
   it('connects agent sessions to mention and slash discovery', () => {
-    expect(findTerminalRichInputAutocomplete(editorWithText('@src') as never, true)).toEqual({
+    expect(findTerminalRichInputAutocomplete(editorWithText('@src'), true)).toEqual({
       mention: { from: 1, to: 5, query: 'src' },
       slash: null
     })
-    expect(findTerminalRichInputAutocomplete(editorWithText('/help') as never, true)).toEqual({
+    expect(findTerminalRichInputAutocomplete(editorWithText('/help'), true)).toEqual({
       mention: null,
       slash: { from: 1, to: 6, query: 'help' }
     })
   })
 
   it('keeps agent-specific suggestions disabled in plain shells', () => {
-    expect(findTerminalRichInputAutocomplete(editorWithText('@src') as never, false)).toEqual({
+    expect(findTerminalRichInputAutocomplete(editorWithText('@src'), false)).toEqual({
       mention: null,
       slash: null
     })
@@ -80,7 +81,7 @@ describe('terminal rich input autocomplete queries', () => {
     })
     editor.commands.setTextSelection(editor.state.doc.content.size - 1)
 
-    const query = findTerminalRichInputMentionQuery(editor as never)
+    const query = findTerminalRichInputMentionQuery(editor)
     expect(query?.query).toBe('src')
 
     editor
@@ -118,24 +119,24 @@ describe('terminal rich input autocomplete queries', () => {
       return editor
     }
 
-    expect(findTerminalRichInputMentionQuery(editorWithAtom('@src') as never)).toBeNull()
-    expect(findTerminalRichInputMentionQuery(editorWithAtom(' @src') as never)?.query).toBe('src')
+    expect(findTerminalRichInputMentionQuery(editorWithAtom('@src'))).toBeNull()
+    expect(findTerminalRichInputMentionQuery(editorWithAtom(' @src'))?.query).toBe('src')
   })
 
   it('does not autocomplete while replacing a selection', () => {
     const mentionEditor = editorWithText('@src suffix')
     mentionEditor.commands.setTextSelection({ from: 5, to: 12 })
-    expect(findTerminalRichInputMentionQuery(mentionEditor as never)).toBeNull()
+    expect(findTerminalRichInputMentionQuery(mentionEditor)).toBeNull()
 
     const slashEditor = editorWithText('/help suffix')
     slashEditor.commands.setTextSelection({ from: 6, to: 13 })
-    expect(findTerminalRichInputSlashQuery(slashEditor as never)).toBeNull()
+    expect(findTerminalRichInputSlashQuery(slashEditor)).toBeNull()
   })
 
   it('only triggers slash commands in the absolute first token', () => {
     for (const text of ['https://example.com', 'please /comp', ' /comp']) {
       const editor = editorWithText(text)
-      expect(findTerminalRichInputSlashQuery(editor as never)).toBeNull()
+      expect(findTerminalRichInputSlashQuery(editor)).toBeNull()
     }
   })
 })

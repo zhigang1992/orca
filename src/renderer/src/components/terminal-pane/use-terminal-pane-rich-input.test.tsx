@@ -24,7 +24,9 @@ afterEach(() => {
 })
 
 function harness() {
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the rich-input hook only reads id, leafId, and terminal.focus off ManagedPane.
   const pane = { id: 1, leafId: 'leaf-1', terminal: { focus: vi.fn() } } as unknown as ManagedPane
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the rich-input hook only reads id, leafId, and terminal.focus off ManagedPane.
   const sibling = {
     id: 2,
     leafId: 'leaf-2',
@@ -33,6 +35,7 @@ function harness() {
   let active = pane
   const transport = { getPtyId: () => 'remote-pty', getConnectionId: () => 'ssh-1' }
   const manager = { getActivePane: () => active, getPanes: () => [pane, sibling] }
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the rich-input hook only reads managerRef, paneTransportsRef, tabId, and worktreeId off the controller.
   const controller = {
     managerRef: { current: manager },
     paneTransportsRef: { current: new Map([[pane.id, transport]]) },

@@ -9,8 +9,7 @@ import {
 import type { PaneManager } from '@/lib/pane-manager/pane-manager'
 import type { PtyTransport } from './pty-transport'
 import type { IDisposable } from '@xterm/xterm'
-import { handleTerminalFileDrop } from './terminal-drop-handler'
-import { getTerminalRichInputDropPathReceiver } from './terminal-rich-input-native-drop'
+import { dispatchTerminalNativeFileDrop } from './terminal-native-drop-dispatch'
 import { handleFocusTerminalPaneDetail } from './focus-terminal-pane-event'
 import { surfaceStaleAgentRow } from './stale-agent-row'
 import { useAppStore } from '@/store'
@@ -305,39 +304,16 @@ export function useTerminalPaneGlobalEffects({
     if (!isActive && !isVisible) {
       return
     }
-    return window.api.ui.onFileDrop((data) => {
-      if (data.target !== 'terminal') {
-        return
-      }
-      if (data.tabId) {
-        if (data.tabId !== tabId) {
-          return
-        }
-      } else if (!isActive) {
-        return
-      }
-      const manager = managerRef.current
-      if (!manager) {
-        return
-      }
-      const wtId = worktreeIdRef.current
-      if (!wtId) {
-        return
-      }
-      const richInputPathReceiver = getTerminalRichInputDropPathReceiver(manager, data.paneLeafId)
-      richInputPathReceiver?.begin(data.paths)
-      const dropResult = handleTerminalFileDrop({
-        manager,
-        paneTransports: paneTransportsRef.current,
-        worktreeId: wtId,
-        tabId,
-        cwd: cwdRef.current,
+    return window.api.ui.onFileDrop((data) =>
+      dispatchTerminalNativeFileDrop({
         data,
-        // Why: native drops still need the terminal's WSL/SSH/runtime resolver,
-        // but an open composer must receive the resolved paths instead of PTY input.
-        ...(richInputPathReceiver ? { onResolvedPaths: richInputPathReceiver.receive } : {})
+        tabId,
+        isActive,
+        manager: managerRef.current,
+        worktreeId: worktreeIdRef.current,
+        paneTransports: paneTransportsRef.current,
+        cwd: cwdRef.current
       })
-      void Promise.resolve(dropResult).finally(() => richInputPathReceiver?.end())
-    })
+    )
   }, [isActive, isVisible, managerRef, paneTransportsRef, tabId])
 }

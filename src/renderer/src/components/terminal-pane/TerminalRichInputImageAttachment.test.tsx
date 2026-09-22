@@ -44,10 +44,11 @@ describe('TerminalRichInputImageAttachmentChip', () => {
     const preview = await screen.findByText('image/png')
     const previewCard = preview.closest('[data-slot="hover-card-content"]')
     expect(previewCard?.classList.contains('w-auto')).toBe(true)
-    expect(previewCard?.classList.contains('p-2')).toBe(true)
+    // A raster preview needs the opaque surface, not the default frosted glass.
+    expect(previewCard?.getAttribute('data-surface')).toBe('solid')
+    expect(previewCard?.getAttribute('data-padding')).toBe('tight')
     expect(previewCard?.classList.contains('bg-popover')).toBe(true)
-    expect(previewCard?.classList.contains('dark:bg-popover')).toBe(true)
-    expect(previewCard?.classList.contains('backdrop-blur-none')).toBe(true)
+    expect(previewCard?.classList.contains('backdrop-blur-2xl')).toBe(false)
   })
 
   it('shows an unavailable state when the preview cannot load', async () => {
@@ -83,7 +84,7 @@ describe('TerminalRichInputImageAttachmentChip', () => {
 
     await userEvent.hover(screen.getByText('image.png'))
     await waitFor(() => expect(document.querySelector('img')).not.toBeNull())
-    fireEvent.error(document.querySelector('img') as HTMLImageElement)
+    fireEvent.error(document.querySelector('img')!)
     expect(await screen.findByText('Preview unavailable')).toBeTruthy()
   })
 
@@ -125,8 +126,7 @@ describe('TerminalRichInputImageAttachmentChip', () => {
     expect(html).toContain('image.png')
     expect(html).toContain('lucide-file-image')
     expect(html).toContain('inline-flex h-6')
-    expect(html).toContain('Remove image.png')
-    expect(html).toContain('data-slot="button"')
+    expect(html).toMatch(/<button[^>]*aria-label="Remove image\.png"/)
     expect(html).toContain('ring-1 ring-ring')
     expect(html).not.toContain('select-none')
   })
@@ -134,7 +134,9 @@ describe('TerminalRichInputImageAttachmentChip', () => {
   it('copies the image as a portable file reference', () => {
     expect(
       TerminalRichInputImageAttachment.config.renderText?.call(
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the tiptap ReactNodeViewRenderer passes editor/extension props the component ignores.
         {} as never,
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the component only reads node.attrs.path off its node-view props.
         {
           node: { attrs: { path: '/tmp/design image.png' } }
         } as never

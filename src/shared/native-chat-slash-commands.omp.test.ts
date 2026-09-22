@@ -23,7 +23,13 @@ describe('OMP terminal command catalog', () => {
     expect(getVerifiedNativeChatCommands('omp')).toEqual(commands)
     expect(getNativeChatAgentProfile('omp')).toBeNull()
     expect(new Set(names).size).toBe(names.length)
-    expect(getAgentSlashCommands('pi').map((command) => command.name)).toEqual(['clear', 'help'])
+    // An agent with no curated registry still falls back to the common set.
+    expect(getAgentSlashCommands('autohand').map((command) => command.name)).toEqual([
+      'clear',
+      'help'
+    ])
+    // Pi has its own curated registry, so it is not the fallback case.
+    expect(getAgentSlashCommands('pi').map((command) => command.name)).toContain('scoped-models')
   })
 
   it('completes arguments separately from picker command dispatch', () => {

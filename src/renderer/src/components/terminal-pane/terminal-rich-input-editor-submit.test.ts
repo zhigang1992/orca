@@ -5,6 +5,7 @@ import { TERMINAL_RICH_INPUT_IMAGE_CARET_SPACER } from './terminal-rich-input-mo
 describe('submitTerminalRichInputEditor', () => {
   it('serializes inline image references in editor order', async () => {
     const onSubmit = vi.fn().mockResolvedValue({ status: 'submitted' })
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInputEditor only reads setEditable, getJSON, and commands off the editor; this fixture supplies exactly those.
     const editor = {
       setEditable: vi.fn(),
       getJSON: () => ({
@@ -39,6 +40,7 @@ describe('submitTerminalRichInputEditor', () => {
 
   it('clears inline images when their combined text reached the PTY', async () => {
     const setContent = vi.fn()
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInputEditor only reads setEditable, getJSON, and commands off the editor; this fixture supplies exactly those.
     const editor = {
       setEditable: vi.fn(),
       getJSON: () => ({
@@ -86,6 +88,7 @@ describe('submitTerminalRichInputEditor', () => {
     const setEditable = vi.fn()
     const setContent = vi.fn()
     const focus = vi.fn()
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInputEditor only reads setEditable, getJSON, and commands off the editor; this fixture supplies exactly those.
     const editor = {
       setEditable,
       getJSON: () => ({

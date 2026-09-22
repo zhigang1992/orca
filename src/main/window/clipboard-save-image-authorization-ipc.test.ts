@@ -50,6 +50,7 @@ vi.mock('../ipc/filesystem-auth', () => ({
 import { registerClipboardHandlers } from './clipboard-ipc-handlers'
 
 function getHandler(channel: string): (...args: unknown[]) => unknown {
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: vi.fn() records ipcMain.handle's arguments as unknown[]; this restates the (channel, handler) pair the registration always passes.
   const call = (handleMock.mock.calls as [string, (...args: unknown[]) => unknown][]).find(
     ([registeredChannel]) => registeredChannel === channel
   )

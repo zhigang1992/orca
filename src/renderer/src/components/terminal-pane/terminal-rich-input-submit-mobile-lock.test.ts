@@ -25,8 +25,10 @@ function harness(ptyId = ptyIds[0]!) {
     modes: { bracketedPasteMode: true },
     options: { ignoreBracketedPasteMode: false }
   }
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInput only reads id, leafId, and terminal off ManagedPane; this fixture supplies exactly those.
   const pane = { id: 1, leafId: 'leaf-1', terminal } as unknown as ManagedPane
   const sendInputAccepted = vi.fn(async (_data: string) => true)
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInput only calls the transport methods listed here; the real PtyTransport carries a much larger surface this suite never exercises.
   const transport = {
     getPtyId: () => ptyId,
     getConnectionId: () => (ptyId === 'pty-ssh' ? 'ssh-1' : null),
@@ -39,6 +41,7 @@ function harness(ptyId = ptyIds[0]!) {
     worktreeId: 'folder-workspace',
     pane,
     transport,
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInput only calls getPanes off PaneManager.
     getManager: () => ({ getPanes: () => [pane] }) as unknown as PaneManager,
     getPaneTransports: () => new Map([[pane.id, transport]]),
     delay: async (_milliseconds: number) => {}

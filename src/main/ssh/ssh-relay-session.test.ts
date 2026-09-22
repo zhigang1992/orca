@@ -222,6 +222,7 @@ describe('SshRelaySession', () => {
     const session = new SshRelaySession('target-1', getMainWindow, mockStore, mockPortForward)
 
     await session.establish(mockConn)
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the mock records its argument as unknown; this narrows it to the one adapter method the assertion below calls.
     const rawTransfer = filesystemProviderRawTransferMock.mock.calls[0]?.[0] as {
       writeBuffer: (path: string, contents: Buffer, options: object) => Promise<void>
     }

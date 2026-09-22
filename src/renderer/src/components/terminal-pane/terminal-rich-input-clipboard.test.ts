@@ -87,6 +87,7 @@ describe('terminalRichInputClipboardText', () => {
       }
     }
 
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: terminalRichInputClipboardText only reads state.doc and state.selection off the editor; this fixture builds those from ProseMirror directly.
     expect(terminalRichInputClipboardText(editor as never)).toBe(
       'Review @/tmp/config.json with @"/tmp/design image.png" please'
     )
@@ -146,6 +147,7 @@ describe('terminalRichInputClipboardText', () => {
       ])
     ])
     let state = EditorState.create({ doc, selection: NodeSelection.create(doc, 1) })
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the cut handler only reads state and calls dispatch; this fixture drives both against a real EditorState.
     props.handleDOMEvents.cut({
       get state() {
         return state
@@ -157,6 +159,7 @@ describe('terminalRichInputClipboardText', () => {
     expect(state.doc.toJSON().content?.[0]).toEqual({ type: 'paragraph' })
 
     state = EditorState.create({ doc, selection: TextSelection.create(doc, 1, 2) })
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the cut handler only reads state and calls dispatch; this fixture drives both against a real EditorState.
     props.handleDOMEvents.cut({
       get state() {
         return state

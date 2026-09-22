@@ -10,7 +10,7 @@ vi.mock('@/lib/file-type-icons', () => ({
 }))
 
 describe('TerminalRichInputFileMenu', () => {
-  it('connects the listbox and active shadcn option with stable IDs', () => {
+  it('connects the listbox and active option with stable IDs', () => {
     const html = renderToStaticMarkup(
       <TerminalRichInputFileMenu
         id="file-menu"
@@ -26,6 +26,7 @@ describe('TerminalRichInputFileMenu', () => {
     expect(html).toContain('role="listbox"')
     expect(html).toContain('id="file-menu-option-1"')
     expect(html).toContain('aria-selected="true"')
-    expect(html).toContain('data-slot="button"')
+    expect(html).toContain('role="option"')
+    expect(html).toContain('bg-accent text-accent-foreground')
   })
 })

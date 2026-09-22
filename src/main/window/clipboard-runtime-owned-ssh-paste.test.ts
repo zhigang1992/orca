@@ -4,11 +4,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { installFakeAppEnvironment } from '../../../config/scripts/vitest-host-ports-setup'
 
-const { handleMock, callRuntimeEnvironmentMock, fsWriteFileMock } = vi.hoisted(() => ({
-  handleMock: vi.fn(),
-  callRuntimeEnvironmentMock: vi.fn(),
-  fsWriteFileMock: vi.fn()
-}))
+const { handleMock, callRuntimeEnvironmentMock, fsWriteFileMock, fsMkdtempMock, fsRmMock } =
+  vi.hoisted(() => ({
+    handleMock: vi.fn(),
+    callRuntimeEnvironmentMock: vi.fn(),
+    fsWriteFileMock: vi.fn(),
+    fsMkdtempMock: vi.fn(),
+    fsRmMock: vi.fn()
+  }))
 
 const PNG = Buffer.from([0, 1, 2, 3])
 
@@ -33,13 +36,18 @@ vi.mock('node:fs/promises', () => ({
   access: vi.fn(),
   lstat: vi.fn(),
   mkdir: vi.fn(),
+  mkdtemp: fsMkdtempMock,
   opendir: vi.fn().mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' })),
-  rm: vi.fn(),
+  rm: fsRmMock,
   open: vi.fn(),
   stat: vi.fn(),
   realpath: vi.fn(),
   writeFile: fsWriteFileMock,
-  default: { writeFile: fsWriteFileMock }
+  default: {
+    writeFile: fsWriteFileMock,
+    mkdtemp: fsMkdtempMock,
+    rm: fsRmMock
+  }
 }))
 vi.mock('../ipc/filesystem-auth', () => ({
   PATH_ACCESS_DENIED_MESSAGE: 'denied',
@@ -115,6 +123,10 @@ describe('clipboard image paste for a runtime-owned SSH workspace', () => {
     installFakeAppEnvironment({ getPath: () => '/tmp' })
     callRuntimeEnvironmentMock.mockReset()
     fsWriteFileMock.mockReset()
+    fsRmMock.mockReset()
+    fsRmMock.mockResolvedValue(undefined)
+    fsMkdtempMock.mockReset()
+    fsMkdtempMock.mockImplementation(async (prefix: string) => `${prefix}test`)
     unregisterSshFilesystemProvider(RUNTIME_SSH_TARGET)
     unregisterSshFilesystemProvider(CLIENT_SSH_TARGET)
   })
@@ -189,17 +201,18 @@ describe('clipboard image paste for a runtime-owned SSH workspace', () => {
   })
 
   it('keeps a client-dialed SSH paste on this process registry without touching the runtime', async () => {
-    const writeFileBase64 = vi.fn().mockResolvedValue(undefined)
+    const writePrivateFileBase64 = vi.fn().mockResolvedValue(undefined)
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the remote save path only calls getTempDir and writePrivateFileBase64 on the provider; the full SshFilesystemProvider surface is unused here.
     registerSshFilesystemProvider(CLIENT_SSH_TARGET, {
       getTempDir: async () => '/var/tmp',
-      writeFileBase64
+      writePrivateFileBase64
     } as never)
 
     await expect(
       saveImageHandler()(rendererEvent, { connectionId: CLIENT_SSH_TARGET })
     ).resolves.toMatch(/^\/var\/tmp\/orca-paste-.*\.png$/)
 
-    expect(writeFileBase64).toHaveBeenCalledTimes(1)
+    expect(writePrivateFileBase64).toHaveBeenCalledTimes(1)
     expect(callRuntimeEnvironmentMock).not.toHaveBeenCalled()
   })
 

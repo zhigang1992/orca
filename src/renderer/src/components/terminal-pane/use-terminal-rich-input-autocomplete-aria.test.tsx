@@ -20,6 +20,7 @@ function Probe({ editor, open }: { editor: Editor; open: boolean }): null {
 describe('useTerminalRichInputAutocompleteAria', () => {
   it('connects and clears the editor autocomplete relationship', async () => {
     const editorElement = document.createElement('div')
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the aria hook only reads isDestroyed and view.dom off the editor.
     const editor = { isDestroyed: false, view: { dom: editorElement } } as unknown as Editor
     const root = createRoot(document.createElement('div'))
 

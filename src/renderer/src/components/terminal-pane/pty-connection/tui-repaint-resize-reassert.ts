@@ -8,6 +8,7 @@ import type { ConnectPanePtySession } from './connect-pane-pty-session'
 /** Re-sends the settled grid when a rich-input open/close reflows a full-screen TUI. */
 export function installTuiRepaintResizeReassert(session: ConnectPanePtySession): void {
   session.onTuiRepaintRequest = (event: Event): void => {
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: addEventListener types the handler parameter as Event; PANE_TUI_REPAINT_REQUEST_EVENT is only ever dispatched by requestPaneTuiRepaint with this detail, and the guard below re-checks every field it reads.
     const detail = (event as CustomEvent<PaneTuiRepaintRequestDetail>).detail
     if (
       detail &&

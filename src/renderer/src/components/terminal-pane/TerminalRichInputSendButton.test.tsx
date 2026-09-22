@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 
+import '@testing-library/jest-dom/vitest'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -22,7 +23,7 @@ describe('TerminalRichInputSendButton', () => {
     )
 
     const button = screen.getByRole('button', { name: 'Send to terminal' })
-    expect((button as HTMLButtonElement).disabled).toBe(true)
+    expect(button).toBeDisabled()
     await userEvent.click(button)
     expect(onSend).not.toHaveBeenCalled()
   })

@@ -18,9 +18,9 @@ export function TerminalRichInputSendButton({
       <TooltipTrigger asChild>
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="icon-sm"
-          className="ml-auto size-8 rounded-md border border-border text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground"
+          className="ml-auto"
           data-terminal-rich-input-send=""
           disabled={disabled || sending}
           onClick={onSend}

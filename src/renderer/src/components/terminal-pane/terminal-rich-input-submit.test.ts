@@ -21,6 +21,7 @@ import {
 } from './terminal-rich-input-submit'
 
 function makePane() {
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInput only reads id, leafId, and terminal off ManagedPane; this fixture supplies exactly those.
   return {
     id: 1,
     leafId: 'leaf-1',
@@ -29,6 +30,7 @@ function makePane() {
 }
 
 function makeTransport(ptyId = 'pty-1') {
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInput only calls the transport methods listed here; the real PtyTransport carries a much larger surface this suite never exercises.
   return {
     getPtyId: vi.fn(() => ptyId),
     isConnected: vi.fn(() => true)
@@ -54,6 +56,7 @@ describe('terminal rich input submit', () => {
         worktreeId: 'worktree-1',
         pane,
         transport,
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInput only calls getPanes off PaneManager.
         getManager: () => ({ getPanes: () => [pane] }) as unknown as PaneManager,
         getPaneTransports: () => panes,
         delay
@@ -80,6 +83,7 @@ describe('terminal rich input submit', () => {
         worktreeId: 'worktree-1',
         pane,
         transport,
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInput only calls getPanes off PaneManager.
         getManager: () => ({ getPanes: () => [pane] }) as unknown as PaneManager,
         getPaneTransports: () => panes,
         delay
@@ -114,6 +118,7 @@ describe('terminal rich input submit', () => {
         worktreeId: 'worktree-1',
         pane,
         transport,
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInput only calls getPanes off PaneManager.
         getManager: () => ({ getPanes: () => [pane] }) as unknown as PaneManager,
         getPaneTransports: () => new Map([[pane.id, transport]]),
         delay: vi.fn(async () => {})
@@ -141,6 +146,7 @@ describe('terminal rich input submit', () => {
         worktreeId: 'worktree-1',
         pane,
         transport,
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInput only calls getPanes off PaneManager.
         getManager: () => ({ getPanes: () => [pane] }) as unknown as PaneManager,
         getPaneTransports: () => panes,
         delay
@@ -170,6 +176,7 @@ describe('terminal rich input submit', () => {
         worktreeId: 'worktree-1',
         pane,
         transport: originalTransport,
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: submitTerminalRichInput only calls getPanes off PaneManager.
         getManager: () => ({ getPanes: () => [pane] }) as unknown as PaneManager,
         getPaneTransports: () => panes,
         delay

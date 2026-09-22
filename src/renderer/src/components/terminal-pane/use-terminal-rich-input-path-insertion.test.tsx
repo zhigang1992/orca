@@ -10,6 +10,7 @@ describe('useTerminalRichInputPathInsertion', () => {
     const editor = { state: { selection: { from: 1 } } }
     const hook = renderHook(() =>
       useTerminalRichInputPathInsertion({
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the insertion hook only reads state.selection.from off the editor.
         editor: editor as never,
         agent: 'claude',
         resourceContext: {

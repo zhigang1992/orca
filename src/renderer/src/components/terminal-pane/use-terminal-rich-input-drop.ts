@@ -34,6 +34,7 @@ export function useTerminalRichInputDrop({
 
   useEffect(() => {
     const onNativeDrop = (event: Event): void => {
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: addEventListener types the handler parameter as Event; TERMINAL_RICH_INPUT_NATIVE_DROP_EVENT is only ever dispatched by terminal-rich-input-native-drop with this detail, and every branch below narrows on phase.
       const detail = (event as CustomEvent<TerminalRichInputNativeDropDetail>).detail
       if (detail?.phase === 'start') {
         setNativeDrop((current) => ({

@@ -62,7 +62,10 @@ export function useTerminalRichInputAttachments({
   }))
   const attachments =
     attachmentState.scopeKey === scopeKey ? attachmentState.attachments : initialAttachments
-  const [noticeState, setNoticeState] = useState({ scopeKey, notice: null as string | null })
+  const [noticeState, setNoticeState] = useState<{ scopeKey: string; notice: string | null }>({
+    scopeKey,
+    notice: null
+  })
   const notice = noticeState.scopeKey === scopeKey ? noticeState.notice : null
   const setNotice = useCallback(
     (next: string | null) => setNoticeState({ scopeKey, notice: next }),

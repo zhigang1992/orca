@@ -203,7 +203,13 @@ export function TerminalRichInputFileMentionChip({
       {preview ? (
         <HoverCard openDelay={250} closeDelay={120}>
           <HoverCardTrigger asChild>{trigger}</HoverCardTrigger>
-          <HoverCardContent side="top" align="start" sideOffset={8} className="w-auto p-2">
+          <HoverCardContent
+            side="top"
+            align="start"
+            sideOffset={8}
+            padding="tight"
+            className="w-auto"
+          >
             {preview}
           </HoverCardContent>
         </HoverCard>

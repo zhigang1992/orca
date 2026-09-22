@@ -56,7 +56,9 @@ describe('TerminalRichInputFileMentionChip', () => {
   it('copies the chip as a portable file reference', () => {
     expect(
       TerminalRichInputFileMention.config.renderText?.call(
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the tiptap ReactNodeViewRenderer passes editor/extension props the component ignores.
         {} as never,
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the component only reads node.attrs.path off its node-view props.
         {
           node: { attrs: { path: '/repo/README.md' } }
         } as never

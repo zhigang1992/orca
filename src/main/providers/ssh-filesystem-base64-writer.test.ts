@@ -16,6 +16,7 @@ function createSftpHarness(): {
   }
   const createWriteStream = vi.fn(() => writeStream)
   return {
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: writeSshFileBase64 only calls createWriteStream and end on the SFTP handle; the real ssh2 SFTPWrapper carries the full protocol surface this suite never exercises.
     createSftp: async () => ({ createWriteStream, end: vi.fn() }) as never,
     createWriteStream
   }

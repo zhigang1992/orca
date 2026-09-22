@@ -34,10 +34,14 @@ export function TerminalPaneRichInputToggle({
           <TextCursorInput className="size-3" />
         </Button>
       </TooltipTrigger>
-      <TooltipContent className="flex items-center gap-2" side="bottom" sideOffset={4}>
-        <span>{label}</span>
+      <TooltipContent side="bottom" sideOffset={4}>
+        {label}
         {shortcut.keys.length > 0 ? (
-          <ShortcutKeyCombo keys={shortcut.keys} doubleTap={shortcut.doubleTap} />
+          <ShortcutKeyCombo
+            keys={shortcut.keys}
+            doubleTap={shortcut.doubleTap}
+            className="ml-1.5"
+          />
         ) : null}
       </TooltipContent>
     </Tooltip>

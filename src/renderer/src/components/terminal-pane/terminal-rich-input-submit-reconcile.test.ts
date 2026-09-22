@@ -5,6 +5,7 @@ import { removeWrittenTerminalRichInputContent } from './terminal-rich-input-sub
 describe('removeWrittenTerminalRichInputContent', () => {
   it('removes written text and images while preserving unsent inline attachments', () => {
     const setContent = vi.fn()
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the reconcile path only reads getJSON and commands.setContent off the editor; this fixture supplies exactly those.
     const editor = {
       getJSON: () => ({
         type: 'doc',

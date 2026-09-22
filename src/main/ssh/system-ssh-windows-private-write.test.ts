@@ -18,7 +18,13 @@ import {
   type WindowsWriteSource
 } from './system-ssh-windows-write-strategy'
 
-const target = { id: 'win', host: 'windows.example', username: 'dev', port: 22 } as SshTarget
+const target: SshTarget = {
+  id: 'win',
+  label: 'win',
+  host: 'windows.example',
+  username: 'dev',
+  port: 22
+}
 const payload = Buffer.from('private clipboard image')
 const events: string[] = []
 const commands: { script: string; bytes: Buffer }[] = []

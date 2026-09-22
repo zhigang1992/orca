@@ -112,6 +112,7 @@ describe('useTerminalRichInputAttachments', () => {
       probe.latest().pasteImageFromClipboard()
       expect(
         probe.latest().handlePaste({
+          // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the paste handler only reads items and getData off DataTransfer; happy-dom does not construct one.
           clipboardData: { items: [], getData: () => '' } as unknown as DataTransfer,
           defaultPrevented: false,
           preventDefault
@@ -137,6 +138,7 @@ describe('useTerminalRichInputAttachments', () => {
     const probe = await renderProbe()
     let defaultPrevented = false
     const event = {
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the paste handler only reads items and getData off DataTransfer; happy-dom does not construct one.
       clipboardData: { items: [], getData: () => '' } as unknown as DataTransfer,
       get defaultPrevented() {
         return defaultPrevented
@@ -238,6 +240,7 @@ describe('useTerminalRichInputAttachments', () => {
     const onAttachmentsAdded = vi.fn<OnAttachmentsAdded>()
     const probe = await renderProbe(onAttachmentsAdded)
     const pasteEvent = () => ({
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the paste handler only reads items and getData off DataTransfer; happy-dom does not construct one.
       clipboardData: { items: [], getData: () => '' } as unknown as DataTransfer,
       defaultPrevented: false,
       preventDefault: vi.fn()
@@ -287,6 +290,7 @@ describe('useTerminalRichInputAttachments', () => {
     const probe = await renderProbe(onAttachmentsAdded)
     latest = probe.latest
     const pasteEvent = () => ({
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the paste handler only reads items and getData off DataTransfer; happy-dom does not construct one.
       clipboardData: { items: [], getData: () => '' } as unknown as DataTransfer,
       defaultPrevented: false,
       preventDefault: vi.fn()

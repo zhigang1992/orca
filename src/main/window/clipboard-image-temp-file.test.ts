@@ -21,6 +21,7 @@ import { saveClipboardImageBufferAsTempFile } from './clipboard-image-temp-file'
 it('keeps SSH image paths remote and never authorizes them as client-local files', async () => {
   vi.clearAllMocks()
   const writePrivateFileBase64 = vi.fn().mockResolvedValue(undefined)
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the remote save path only calls getTempDir and writePrivateFileBase64 on the provider; the full SshFilesystemProvider surface is unused here.
   vi.mocked(requireSshFilesystemProvider).mockReturnValue({
     getTempDir: async () => '/remote/tmp',
     writePrivateFileBase64

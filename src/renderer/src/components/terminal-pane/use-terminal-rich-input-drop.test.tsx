@@ -35,6 +35,7 @@ function Probe({
 async function renderProbe(open = true) {
   const root = createRoot(document.createElement('div'))
   const container = document.createElement('div')
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the drop hook only reads container off ManagedPane.
   const pane = { container } as unknown as ManagedPane
   const insertPaths = vi.fn<(paths: string[]) => void>()
   let api: DropApi | null = null
@@ -102,15 +103,18 @@ describe('useTerminalRichInputDrop', () => {
 
   it('claims workspace file drags and drops', async () => {
     const probe = await renderProbe()
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the handlers only write dropEffect; happy-dom does not construct a DataTransfer.
     const dataTransfer = { dropEffect: 'none' } as DataTransfer
     const preventDefault = vi.fn()
     const stopPropagation = vi.fn()
     getWorkspaceFileDragPathsMock.mockReturnValue(['/tmp/a', '/tmp/b'])
 
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the handler only reads dataTransfer and preventDefault off the React drag event.
     probe.latest().onDragOver({ dataTransfer, preventDefault } as never)
     expect(preventDefault).toHaveBeenCalledOnce()
     expect(dataTransfer.dropEffect).toBe('copy')
 
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the handler only reads dataTransfer, preventDefault, and stopPropagation off the React drag event.
     probe.latest().onDrop({ dataTransfer, preventDefault, stopPropagation } as never)
     expect(stopPropagation).toHaveBeenCalledOnce()
     expect(probe.insertPaths).toHaveBeenCalledWith(['/tmp/a', '/tmp/b'])

@@ -193,7 +193,9 @@ export function TerminalRichInputImageAttachmentChip({
             side="top"
             align="start"
             sideOffset={8}
-            className="w-auto border-border bg-popover p-2 shadow-md backdrop-blur-none dark:border-border dark:bg-popover dark:shadow-md"
+            surface="solid"
+            padding="tight"
+            className="w-auto"
           >
             <TerminalRichInputImagePreview
               path={previewSrc ?? path}

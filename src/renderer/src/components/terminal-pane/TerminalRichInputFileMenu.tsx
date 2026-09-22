@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import { Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { getFileTypeIcon } from '@/lib/file-type-icons'
 import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
@@ -48,25 +47,23 @@ export function TerminalRichInputFileMenu({
         paths.map((path, index) => {
           const FileIcon = getFileTypeIcon(path)
           return (
-            <Button
+            <button
               id={`${id}-option-${index}`}
               key={path}
               ref={index === activeIndex ? activeOptionRef : null}
               type="button"
-              variant="ghost"
-              size="sm"
               role="option"
               aria-selected={index === activeIndex}
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => onChoose(path)}
               className={cn(
-                'h-auto min-w-0 w-full justify-start rounded-sm px-2 py-1.5 text-left text-sm',
+                'flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm font-medium outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50',
                 index === activeIndex ? 'bg-accent text-accent-foreground' : 'text-foreground'
               )}
             >
               <FileIcon className="size-3.5 shrink-0 text-muted-foreground" />
               <span className="truncate font-mono text-xs">{path}</span>
-            </Button>
+            </button>
           )
         })
       )}

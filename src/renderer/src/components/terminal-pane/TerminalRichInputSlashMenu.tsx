@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import type { SlashCommandSuggestion } from '../../../../shared/native-chat-slash-commands'
@@ -31,19 +30,17 @@ export function TerminalRichInputSlashMenu({
       aria-label={translate('components.terminal.richInput.slashCommands', 'Slash commands')}
     >
       {suggestions.map((command, index) => (
-        <Button
+        <button
           id={`${id}-option-${index}`}
           key={command.name}
           ref={index === activeIndex ? activeRef : undefined}
           type="button"
-          variant="ghost"
-          size="sm"
           role="option"
           aria-selected={index === activeIndex}
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => onChoose(command)}
           className={cn(
-            'h-auto min-w-0 w-full justify-start rounded-sm px-2 py-1.5 text-left text-sm',
+            'flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm font-medium outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50',
             index === activeIndex ? 'bg-accent text-accent-foreground' : 'text-foreground'
           )}
         >
@@ -51,7 +48,7 @@ export function TerminalRichInputSlashMenu({
           {command.description ? (
             <span className="truncate text-xs text-muted-foreground">{command.description}</span>
           ) : null}
-        </Button>
+        </button>
       ))}
     </div>
   )
