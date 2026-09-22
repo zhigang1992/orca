@@ -18,9 +18,13 @@ const TERMINAL_PANE_HOOK_SOURCE_PATTERN =
 // paused notice that read it (207 hooks, still 8 useMemo).
 // Then host-authoritative layout removal added two `useRef`s in reconciliation
 // (last host layout leaf set, retired leaf set) (209 hooks, still 8 useMemo).
-// Rich input adds one state and three callbacks (213 hooks, still 8 useMemo).
+// Then search match count + Cmd+F focus parity (#9035) added a `useRef` and a `useCallback` in
+// foundation (search input ref, focus-search-input) (211 hooks, still 8 useMemo).
+// Then the pending split-close admission added one `useRef` in close-actions
+// (the confirmed-close continuation) (212 hooks, still 8 useMemo).
+// Rich input adds one state and three callbacks (216 hooks, still 8 useMemo).
 const PRE_REFACTOR_HOOK_ORDER_SHA256 =
-  'e12c8105078da9c200887e7311e87c63fe738e28128eb8863beaeb2c22a34005'
+  '0b7c3b39f2f92acf0602e282ce521ff4965db0ed089f77e619de39176e8c0904'
 
 const sourceFiles = readdirSync(__dirname)
   .filter((name) => TERMINAL_PANE_HOOK_SOURCE_PATTERN.test(name))
@@ -85,7 +89,7 @@ function readFlattenedHookOrder(): string[] {
 describe('TerminalPane refactor hook parity', () => {
   it('preserves the recursively flattened render hook order', () => {
     const hooks = readFlattenedHookOrder()
-    expect(hooks).toHaveLength(213)
+    expect(hooks).toHaveLength(216)
     expect(hooks.filter((hook) => hook === 'useMemo')).toHaveLength(8)
     expect(createHash('sha256').update(hooks.join('\n')).digest('hex')).toBe(
       PRE_REFACTOR_HOOK_ORDER_SHA256

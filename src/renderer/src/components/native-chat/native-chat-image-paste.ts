@@ -6,7 +6,10 @@
 
 import { isImageDropPath } from '../terminal-pane/terminal-drop-image-path'
 
-export { getAgentImageHandling } from '../../../../shared/agent-image-handling'
+export {
+  getAgentImageHandling,
+  type AgentImageHandling
+} from '../../../../shared/agent-image-paste'
 
 export function isNativeChatImageAttachmentPath(path: string): boolean {
   return isImageDropPath(path)
